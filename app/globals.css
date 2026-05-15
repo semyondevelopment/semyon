@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+html, body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(209,250,110,0.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(120,170,255,0.07), transparent 60%),
+    #0b0b0c;
+  color: #ededee;
+  background-attachment: fixed;
+}
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+.btn { @apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium border border-line bg-panel hover:bg-line/40 active:scale-[0.96] transition; }
+.btn-accent {
+  @apply bg-accent text-black border-transparent hover:bg-accent/90;
+  box-shadow: 0 0 0 0 rgba(209,250,110,0), 0 10px 30px -10px rgba(209,250,110,0.6);
+}
+.card {
+  @apply rounded-2xl border border-line bg-panel/80 backdrop-blur;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 30px -20px rgba(0,0,0,0.8);
+}
+.input { @apply w-full rounded-xl border border-line bg-panel px-3 py-2 text-sm placeholder:text-sub focus:outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/20 transition; }
+.label { @apply text-[10px] uppercase tracking-[0.12em] text-sub font-medium; }
+.chip { @apply inline-flex items-center rounded-full border border-line bg-panel/60 px-2 py-0.5 text-[11px] text-sub; }
+
+/* Confetti burst — small CSS-only sparkle */
+@keyframes pop-ring {
+  0%   { transform: scale(0.4); opacity: 0.9; }
+  60%  { transform: scale(1.6); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.pop-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid #d1fa6e;
+  animation: pop-ring 600ms ease-out forwards;
+  pointer-events: none;
+}
+
+/* Subtle float on focus card */
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+.floaty { animation: floaty 4s ease-in-out infinite; }
+
+/* Streak flame */
+@keyframes flicker { 0%,100% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.08) rotate(2deg); } }
+.flicker { animation: flicker 1.2s ease-in-out infinite; display: inline-block; }
+
+/* Slide-up entrance for first paint (fallback if JS gated) */
+@keyframes slide-up { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.slide-up { animation: slide-up 380ms cubic-bezier(.2,.8,.2,1) both; }
+
+/* Scrollbar tidy */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: #26262a; border-radius: 99px; }
