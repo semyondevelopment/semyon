@@ -80,6 +80,45 @@ const DDL = [
     body TEXT NOT NULL,
     created_at INTEGER NOT NULL DEFAULT (unixepoch())
   )`,
+  `CREATE TABLE IF NOT EXISTS set_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    action_id INTEGER NOT NULL REFERENCES actions(id) ON DELETE CASCADE,
+    exercise TEXT NOT NULL,
+    set_index INTEGER NOT NULL,
+    weight TEXT,
+    reps INTEGER,
+    rpe TEXT,
+    session_date TEXT NOT NULL,
+    done_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_set_log_action_exercise ON set_log(action_id, exercise, session_date DESC)`,
+  `CREATE TABLE IF NOT EXISTS daily_log (
+    date_key TEXT PRIMARY KEY,
+    protein_g INTEGER NOT NULL DEFAULT 0,
+    calories INTEGER NOT NULL DEFAULT 0,
+    weight_kg TEXT,
+    notes TEXT,
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    niche TEXT,
+    status TEXT NOT NULL DEFAULT 'lead',
+    mrr INTEGER,
+    last_touch_at INTEGER,
+    next_step TEXT,
+    notes TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE TABLE IF NOT EXISTS reflections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    week_starting INTEGER NOT NULL UNIQUE,
+    worked TEXT,
+    fix TEXT,
+    change TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
 ];
 
 let initPromise: Promise<void> | null = null;

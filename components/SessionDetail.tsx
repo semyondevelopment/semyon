@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import { checkOffAction } from "@/app/actions";
 import { useState, useTransition } from "react";
 import confetti from "canvas-confetti";
-import type { Action } from "@/db/schema";
+import type { Action, SetLog } from "@/db/schema";
 import type { Session } from "@/lib/program";
 import { Check, Clock, Repeat, Flame, Sparkles } from "lucide-react";
 import { relativeDue } from "@/lib/scheduling";
+import ExerciseLogger from "@/components/ExerciseLogger";
 
 const TYPE_TINT: Record<Session["type"], string> = {
   lift: "from-rose-500/20",
@@ -21,7 +22,17 @@ const TYPE_ACCENT: Record<Session["type"], string> = {
   run:  "#38bdf8",
 };
 
-export default function SessionDetail({ action, session }: { action: Action; session: Session }) {
+export default function SessionDetail({
+  action,
+  session,
+  todayByExercise,
+  lastByExercise,
+}: {
+  action: Action;
+  session: Session;
+  todayByExercise: Record<string, SetLog[]>;
+  lastByExercise: Record<string, { date: string; sets: SetLog[] } | null>;
+}) {
   const [pending, start] = useTransition();
   const [done, setDone] = useState(false);
   const accent = TYPE_ACCENT[session.type];
@@ -40,6 +51,8 @@ export default function SessionDetail({ action, session }: { action: Action; ses
     setDone(true);
     setTimeout(() => start(() => checkOffAction(action.id, "done")), 380);
   }
+
+  const isLift = session.type === "lift";
 
   return (
     <motion.div
@@ -89,6 +102,15 @@ export default function SessionDetail({ action, session }: { action: Action; ses
                 {b.rest && <span>rest {b.rest}</span>}
                 {b.notes && <span className="opacity-90">· {b.notes}</span>}
               </div>
+              {isLift && (
+                <ExerciseLogger
+                  actionId={action.id}
+                  exercise={b.name}
+                  targetSetsText={b.sets}
+                  todaySets={todayByExercise[b.name] ?? []}
+                  lastSession={lastByExercise[b.name] ?? null}
+                />
+              )}
             </motion.div>
           ))}
         </div>

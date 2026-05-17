@@ -8,6 +8,7 @@ import { StaggerList, StaggerItem } from "@/components/Stagger";
 import QuickAdd from "@/components/QuickAdd";
 import { Users } from "lucide-react";
 import { AREA_META } from "@/lib/areas";
+import DailyLog from "@/components/DailyLog";
 
 export const dynamic = "force-dynamic";
 
@@ -50,6 +51,8 @@ export default async function TodayPage() {
       </header>
 
       <QuickAdd area="tasks" placeholder="Add a task for today…" />
+
+      <DailyLog />
 
       {tasks.length > 0 && (
         <section className="space-y-2">

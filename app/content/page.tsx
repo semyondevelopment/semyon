@@ -4,9 +4,11 @@ import { and, eq, lte, asc, desc } from "drizzle-orm";
 import { startOfTodayUnix } from "@/lib/scheduling";
 import ActionRow from "@/components/ActionRow";
 import { StaggerList, StaggerItem } from "@/components/Stagger";
-import { Video, Lightbulb, Target, Send, ArrowUpRight } from "lucide-react";
+import { Video, Lightbulb, Target, Send, ArrowUpRight, Briefcase } from "lucide-react";
 import Link from "next/link";
 import QuickAdd from "@/components/QuickAdd";
+import { leads as leadsT } from "@/db/schema";
+import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +21,9 @@ export default async function ContentPage() {
     .orderBy(asc(actions.nextDueAt));
 
   const moneyNotes = await db.select().from(notes).where(eq(notes.area, "money")).orderBy(desc(notes.id));
+
+  const [{ mrrSum }] = await db.select({ mrrSum: sql<number>`COALESCE(SUM(${leadsT.mrr}), 0)` }).from(leadsT).where(eq(leadsT.status, "signed"));
+  const [{ activeLeads }] = await db.select({ activeLeads: sql<number>`COUNT(*)` }).from(leadsT);
   const moneyGoals = await db.select().from(goals).where(eq(goals.area, "money")).orderBy(asc(goals.id));
   const focusGoal = moneyGoals.find((g) => g.pinned) ?? moneyGoals[0];
 
@@ -39,6 +44,18 @@ export default async function ContentPage() {
         <h1 className="mt-2 text-[40px] font-semibold leading-none tracking-tight">Content</h1>
         <div className="mt-2 text-sm text-sub">Sit down, hit record, send the next message.</div>
       </header>
+
+      <Link href="/pipeline" className="card group flex items-center gap-3 p-4 transition hover:border-emerald-500/40 active:scale-[0.99]">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+          <Briefcase size={20} />
+        </div>
+        <div className="flex-1">
+          <div className="text-[11px] uppercase tracking-[0.12em] text-sub">Sales pipeline</div>
+          <div className="text-sm font-medium">${mrrSum.toLocaleString()} <span className="text-sub font-normal">/ $10,000 MRR</span></div>
+          <div className="text-[11px] text-sub">{activeLeads} leads tracked</div>
+        </div>
+        <ArrowUpRight size={16} className="text-sub transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-emerald-400" />
+      </Link>
 
       {focusGoal && (
         <Link

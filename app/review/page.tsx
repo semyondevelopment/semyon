@@ -1,11 +1,14 @@
 import { db, ensureDb } from "@/db/client";
-import { actionLog, actions, goals } from "@/db/schema";
+import { actionLog, actions, goals, reflections } from "@/db/schema";
 import { gte, eq, desc } from "drizzle-orm";
 import { AREA_META, AREA_ORDER } from "@/lib/areas";
 import Link from "next/link";
 import { StaggerList, StaggerItem } from "@/components/Stagger";
 import CountUp from "@/components/CountUp";
 import { Check, X as XIcon, ArrowUpRight } from "lucide-react";
+import ReflectionForm from "@/components/ReflectionForm";
+import { weekStartUnix, fmtWeek } from "@/lib/dates";
+import NotificationsButton from "@/components/NotificationsButton";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +30,9 @@ export default async function ReviewPage() {
     const a = allActions.find((x) => x.id === l.actionId);
     if (a) byArea[a.area].done += 1;
   }
+
+  const weekStart = weekStartUnix();
+  const existingReflection = (await db.select().from(reflections).where(eq(reflections.weekStarting, weekStart)))[0] ?? null;
 
   const pinned = await db.select().from(goals).where(eq(goals.pinned, true));
   const recentDone = log.filter((l) => l.outcome === "done").sort((a, b) => b.doneAt - a.doneAt).slice(0, 12);
@@ -93,6 +99,10 @@ export default async function ReviewPage() {
           })}
         </StaggerList>
       </section>
+
+      <ReflectionForm existing={existingReflection} weekLabel={fmtWeek(weekStart)} />
+
+      <NotificationsButton />
 
       {pinned.length > 0 && (
         <section className="space-y-2">

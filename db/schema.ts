@@ -80,8 +80,57 @@ export const notes = sqliteTable("notes", {
   createdAt: integer("created_at").notNull().default(now),
 });
 
+export const setLog = sqliteTable("set_log", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  actionId: integer("action_id").notNull().references(() => actions.id, { onDelete: "cascade" }),
+  exercise: text("exercise").notNull(),
+  setIndex: integer("set_index").notNull(),
+  weight: text("weight"),
+  reps: integer("reps"),
+  rpe: text("rpe"),
+  sessionDate: text("session_date").notNull(),
+  doneAt: integer("done_at").notNull().default(now),
+});
+
+export const dailyLog = sqliteTable("daily_log", {
+  dateKey: text("date_key").primaryKey(),
+  proteinG: integer("protein_g").notNull().default(0),
+  calories: integer("calories").notNull().default(0),
+  weightKg: text("weight_kg"),
+  notes: text("notes"),
+  updatedAt: integer("updated_at").notNull().default(now),
+});
+
+export const LEAD_STATUSES = ["lead", "qualified", "call_booked", "proposal", "signed", "lost"] as const;
+export type LeadStatus = (typeof LEAD_STATUSES)[number];
+
+export const leads = sqliteTable("leads", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  niche: text("niche"),
+  status: text("status").notNull().default("lead"),
+  mrr: integer("mrr"),
+  lastTouchAt: integer("last_touch_at"),
+  nextStep: text("next_step"),
+  notes: text("notes"),
+  createdAt: integer("created_at").notNull().default(now),
+});
+
+export const reflections = sqliteTable("reflections", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  weekStarting: integer("week_starting").notNull().unique(),
+  worked: text("worked"),
+  fix: text("fix"),
+  change: text("change"),
+  createdAt: integer("created_at").notNull().default(now),
+});
+
 export type Goal = typeof goals.$inferSelect;
 export type Action = typeof actions.$inferSelect;
 export type Milestone = typeof milestones.$inferSelect;
 export type Person = typeof people.$inferSelect;
 export type Note = typeof notes.$inferSelect;
+export type SetLog = typeof setLog.$inferSelect;
+export type DailyLog = typeof dailyLog.$inferSelect;
+export type Lead = typeof leads.$inferSelect;
+export type Reflection = typeof reflections.$inferSelect;

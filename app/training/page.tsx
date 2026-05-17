@@ -1,12 +1,15 @@
 import { db, ensureDb } from "@/db/client";
-import { actions } from "@/db/schema";
-import { and, eq, lte, asc } from "drizzle-orm";
+import { actions, setLog } from "@/db/schema";
+import { and, eq, lte, asc, desc, ne } from "drizzle-orm";
 import { startOfTodayUnix } from "@/lib/scheduling";
+import { todayKey } from "@/lib/dates";
 import ActionRow from "@/components/ActionRow";
 import { sessionForAction, WEEK_SCHEDULE, type Session } from "@/lib/program";
 import { StaggerList, StaggerItem } from "@/components/Stagger";
 import SessionDetail from "@/components/SessionDetail";
+import DailyLog from "@/components/DailyLog";
 import { Dumbbell, Calendar, Flame } from "lucide-react";
+import type { SetLog } from "@/db/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -18,14 +21,41 @@ export default async function TrainingPage() {
     .where(and(eq(actions.status, "active"), eq(actions.area, "health"), lte(actions.nextDueAt, cutoff)))
     .orderBy(asc(actions.nextDueAt));
 
-  // The "main" session today = the first action that maps to a program session.
   const mainAction = todayHealth.find((a) => sessionForAction(a.title));
   const mainSession: Session | null = mainAction ? sessionForAction(mainAction.title) : null;
   const supports = todayHealth.filter((a) => a !== mainAction);
 
-  const todayDow = new Date().getDay(); // Sun=0
-  const todayLabel = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][todayDow];
+  // Load this session's logs + most recent prior session per exercise.
+  let todayByExercise: Record<string, SetLog[]> = {};
+  let lastByExercise: Record<string, { date: string; sets: SetLog[] } | null> = {};
+  if (mainAction && mainSession) {
+    const tkey = todayKey();
+    const today = await db.select().from(setLog)
+      .where(and(eq(setLog.actionId, mainAction.id), eq(setLog.sessionDate, tkey)))
+      .orderBy(asc(setLog.setIndex));
+    todayByExercise = today.reduce<Record<string, SetLog[]>>((acc, s) => {
+      (acc[s.exercise] ||= []).push(s);
+      return acc;
+    }, {});
+    for (const block of mainSession.blocks) {
+      const prior = await db.select().from(setLog)
+        .where(and(
+          eq(setLog.actionId, mainAction.id),
+          eq(setLog.exercise, block.name),
+          ne(setLog.sessionDate, tkey),
+        ))
+        .orderBy(desc(setLog.sessionDate), asc(setLog.setIndex));
+      if (prior.length) {
+        const date = prior[0].sessionDate;
+        lastByExercise[block.name] = { date, sets: prior.filter((p) => p.sessionDate === date) };
+      } else {
+        lastByExercise[block.name] = null;
+      }
+    }
+  }
 
+  const todayDow = new Date().getDay();
+  const todayLabel = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][todayDow];
   const date = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
 
   return (
@@ -40,8 +70,15 @@ export default async function TrainingPage() {
         </div>
       </header>
 
+      <DailyLog />
+
       {mainSession && mainAction && (
-        <SessionDetail action={mainAction} session={mainSession} />
+        <SessionDetail
+          action={mainAction}
+          session={mainSession}
+          todayByExercise={todayByExercise}
+          lastByExercise={lastByExercise}
+        />
       )}
 
       {supports.length > 0 && (
@@ -65,10 +102,7 @@ export default async function TrainingPage() {
           {WEEK_SCHEDULE.map((d) => {
             const isToday = d.day === todayLabel;
             return (
-              <div
-                key={d.day}
-                className={`flex items-center gap-3 px-4 py-3 ${isToday ? "bg-accent/5" : ""}`}
-              >
+              <div key={d.day} className={`flex items-center gap-3 px-4 py-3 ${isToday ? "bg-accent/5" : ""}`}>
                 <div className={`w-10 text-[11px] font-semibold uppercase tracking-[0.12em] ${isToday ? "text-accent" : "text-sub"}`}>{d.day}</div>
                 <div className="flex-1 text-sm">{d.session}</div>
                 {isToday && <span className="chip text-accent border-accent/40">Today</span>}
