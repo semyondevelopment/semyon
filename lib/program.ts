@@ -171,12 +171,13 @@ export function sessionForAction(title: string): Session | null {
 }
 
 // Weekly schedule view (for "this week"). Aligned to Iron Fist (Brisbane) timetable.
+// No-Gi only. 3× Z2 runs / week before evening combat sessions.
 export const WEEK_SCHEDULE = [
-  { day: "Mon", session: "Upper A — Push (lift)",                              type: "lift" },
-  { day: "Tue", session: "BJJ Gi — Fundamentals · 5:30pm",                     type: "bjj"  },
-  { day: "Wed", session: "Lower A — Squat (lift)",                             type: "lift" },
-  { day: "Thu", session: "Muay Thai — Int/Adv · 5:30pm",                       type: "muay" },
-  { day: "Fri", session: "Upper B — Pull  +  BJJ Open Mat · 5:30pm",           type: "lift" },
-  { day: "Sat", session: "MT Sparring · 9am  +  Lower B — Deadlift (PM)",      type: "lift" },
-  { day: "Sun", session: "Z2 easy run  +  long walk",                          type: "run"  },
+  { day: "Mon", session: "Upper A — Push (lift)",                                   type: "lift" },
+  { day: "Tue", session: "Z2 run AM  +  BJJ No-Gi · 6:30pm",                        type: "bjj"  },
+  { day: "Wed", session: "Lower A — Squat (lift)",                                  type: "lift" },
+  { day: "Thu", session: "Z2 run AM  +  Muay Thai Int/Adv · 5:30pm",                type: "muay" },
+  { day: "Fri", session: "Upper B — Pull  +  BJJ Open Mat · 5:30pm (No-Gi)",        type: "lift" },
+  { day: "Sat", session: "MT Sparring · 9am  +  Lower B — Deadlift (PM)",           type: "lift" },
+  { day: "Sun", session: "Long Z2 run (45-60 min)  +  walk",                        type: "run"  },
 ] as const;

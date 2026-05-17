@@ -139,8 +139,8 @@ async function main() {
     { goalId: bjj, title: "4 stripes on white belt", order: 4 },
   ]);
   await db.insert(actions).values([
-    { goalId: bjj, area: "health", title: "BJJ Gi — fundamentals class (Tue 5:30pm @ Iron Fist)", cadence: "weekly", nextDueAt: TUE },
-    { goalId: bjj, area: "health", title: "BJJ — open mat / rolling (Fri 5:30pm @ Iron Fist)",    cadence: "weekly", nextDueAt: FRI },
+    { goalId: bjj, area: "health", title: "BJJ No-Gi — fundamentals (Tue 6:30pm @ Iron Fist)",          cadence: "weekly", nextDueAt: TUE },
+    { goalId: bjj, area: "health", title: "BJJ — open mat / rolling (Fri 5:30pm @ Iron Fist · No-Gi)", cadence: "weekly", nextDueAt: FRI },
   ]);
 
   const cardio = await insertGoal({
@@ -151,9 +151,11 @@ async function main() {
     targetValue: "30–80",
   });
   await db.insert(actions).values([
-    { goalId: cardio, area: "health", title: "Z2 easy run (30–40 min)", cadence: "weekly", nextDueAt: SUN },
-    { goalId: cardio, area: "health", title: "Long walk (60+ min)", cadence: "weekly", nextDueAt: SUN },
-    { goalId: cardio, area: "health", title: "10k steps", cadence: "daily", nextDueAt: now },
+    { goalId: cardio, area: "health", title: "Z2 easy run (30–40 min)",          cadence: "weekly", nextDueAt: TUE },
+    { goalId: cardio, area: "health", title: "Z2 easy run (30–40 min)",          cadence: "weekly", nextDueAt: THU },
+    { goalId: cardio, area: "health", title: "Long Z2 run (45–60 min)",          cadence: "weekly", nextDueAt: SUN },
+    { goalId: cardio, area: "health", title: "Long walk (60+ min)",              cadence: "weekly", nextDueAt: SUN },
+    { goalId: cardio, area: "health", title: "10k steps",                        cadence: "daily",  nextDueAt: now },
   ]);
 
   // ─── TASKS (chores/errands seed) ──────────────────────────────────
