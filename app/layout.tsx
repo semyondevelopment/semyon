@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import BottomNav from "@/components/BottomNav";
 import SwRegister from "@/components/SwRegister";
+import Preloader from "@/components/Preloader";
 
 export const metadata: Metadata = {
   title: "Life OS",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-dvh">
+        <Preloader />
         <main className="mx-auto max-w-2xl px-4 pt-6 pb-40">{children}</main>
         <BottomNav />
         <SwRegister />
