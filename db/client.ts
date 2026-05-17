@@ -229,6 +229,14 @@ const DDL = [
     created_at INTEGER NOT NULL DEFAULT (unixepoch())
   )`,
   `CREATE INDEX IF NOT EXISTS idx_announcements_posted ON announcements(posted_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_actions_area_status_due ON actions(area, status, next_due_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_actions_goal ON actions(goal_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_action_log_action_done ON action_log(action_id, done_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_action_log_done ON action_log(done_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_goals_area ON goals(area, status)`,
+  `CREATE INDEX IF NOT EXISTS idx_notes_area ON notes(area, id DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_assignments_module_due ON assignments(module_id, due_date)`,
+  `CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status, last_touch_at DESC)`,
   `CREATE TABLE IF NOT EXISTS sync_state (
     service TEXT PRIMARY KEY,
     last_run_at INTEGER,

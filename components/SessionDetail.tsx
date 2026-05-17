@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import { checkOffAction } from "@/app/actions";
 import { useState, useTransition } from "react";
-import confetti from "canvas-confetti";
 import type { Action, SetLog } from "@/db/schema";
 import type { Session } from "@/lib/program";
 import { Check, Clock, Repeat, Flame, Sparkles } from "lucide-react";
@@ -37,9 +36,13 @@ export default function SessionDetail({
   const [done, setDone] = useState(false);
   const accent = TYPE_ACCENT[session.type];
 
-  function complete(e: React.MouseEvent) {
+  async function complete(e: React.MouseEvent) {
     if (done || pending) return;
+    if (navigator.vibrate) navigator.vibrate(20);
+    setDone(true);
+    setTimeout(() => start(() => checkOffAction(action.id, "done")), 380);
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const { default: confetti } = await import("canvas-confetti");
     confetti({
       particleCount: 60, spread: 80, startVelocity: 36, ticks: 110,
       origin: { x: (r.left + r.width / 2) / window.innerWidth, y: (r.top + r.height / 2) / window.innerHeight },
@@ -47,9 +50,6 @@ export default function SessionDetail({
       scalar: 0.95,
       disableForReducedMotion: true,
     });
-    if (navigator.vibrate) navigator.vibrate(20);
-    setDone(true);
-    setTimeout(() => start(() => checkOffAction(action.id, "done")), 380);
   }
 
   const isLift = session.type === "lift";

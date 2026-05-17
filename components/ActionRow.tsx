@@ -6,7 +6,6 @@ import { relativeDue } from "@/lib/scheduling";
 import { AREA_META } from "@/lib/areas";
 import type { Action, Area } from "@/db/schema";
 import { motion, AnimatePresence } from "framer-motion";
-import confetti from "canvas-confetti";
 import { Check, Clock, X, Flame, Repeat, Zap } from "lucide-react";
 import { AreaIcon } from "@/components/AreaBadge";
 
@@ -17,17 +16,19 @@ export default function ActionRow({ a, showArea = false }: { a: Action; showArea
   const overdue = a.nextDueAt < Math.floor(Date.now() / 1000) - 60;
   const meta = AREA_META[a.area as Area];
 
-  function celebrate(e: React.MouseEvent) {
+  async function celebrate(e: React.MouseEvent) {
     setRing(true);
     setTimeout(() => setRing(false), 600);
+    if (navigator.vibrate) navigator.vibrate(10);
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const origin = { x: (r.left + r.width / 2) / window.innerWidth, y: (r.top + r.height / 2) / window.innerHeight };
+    // Lazy-load confetti so it's not in the initial bundle.
+    const { default: confetti } = await import("canvas-confetti");
     confetti({
       particleCount: 26, spread: 65, startVelocity: 28, ticks: 90, origin,
       colors: ["#d1fa6e", "#ffffff", "#a3e635", "#facc15"], scalar: 0.85,
       disableForReducedMotion: true,
     });
-    if (navigator.vibrate) navigator.vibrate(10);
   }
 
   function handleDone(e: React.MouseEvent) {
