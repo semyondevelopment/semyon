@@ -10,13 +10,18 @@ export const dynamic = "force-dynamic";
 
 export default async function AreasIndex() {
   await ensureDb();
-  const counts = await Promise.all(
-    AREA_ORDER.map(async (area) => {
-      const [{ goalCount }] = await db.select({ goalCount: sql<number>`count(*)` }).from(goals).where(eq(goals.area, area));
-      const [{ actionCount }] = await db.select({ actionCount: sql<number>`count(*)` }).from(actions).where(eq(actions.area, area));
-      return { area, goalCount, actionCount };
-    }),
-  );
+  // Two queries total instead of 14 — group counts in one trip per table.
+  const [goalRows, actionRows] = await Promise.all([
+    db.select({ area: goals.area, c: sql<number>`count(*)` }).from(goals).groupBy(goals.area),
+    db.select({ area: actions.area, c: sql<number>`count(*)` }).from(actions).groupBy(actions.area),
+  ]);
+  const goalMap = new Map(goalRows.map((r) => [r.area, r.c]));
+  const actionMap = new Map(actionRows.map((r) => [r.area, r.c]));
+  const counts = AREA_ORDER.map((area) => ({
+    area,
+    goalCount: goalMap.get(area) ?? 0,
+    actionCount: actionMap.get(area) ?? 0,
+  }));
 
   return (
     <div className="space-y-6">

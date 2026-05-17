@@ -15,11 +15,17 @@ export const dynamic = "force-dynamic";
 export default async function ReviewPage() {
   await ensureDb();
   const weekAgo = Math.floor(Date.now() / 1000) - 7 * 86400;
-  const log = await db.select().from(actionLog).where(gte(actionLog.doneAt, weekAgo));
+  const weekStart = weekStartUnix();
+  const [log, allActions, existingReflectionRow, pinned] = await Promise.all([
+    db.select().from(actionLog).where(gte(actionLog.doneAt, weekAgo)),
+    db.select().from(actions),
+    db.select().from(reflections).where(eq(reflections.weekStarting, weekStart)),
+    db.select().from(goals).where(eq(goals.pinned, true)),
+  ]);
+  const existingReflection = existingReflectionRow[0] ?? null;
   const done = log.filter((l) => l.outcome === "done").length;
   const skipped = log.filter((l) => l.outcome === "skip").length;
 
-  const allActions = await db.select().from(actions);
   const byArea: Record<string, { done: number; total: number }> = {};
   for (const a of allActions) {
     byArea[a.area] ||= { done: 0, total: 0 };
@@ -30,11 +36,6 @@ export default async function ReviewPage() {
     const a = allActions.find((x) => x.id === l.actionId);
     if (a) byArea[a.area].done += 1;
   }
-
-  const weekStart = weekStartUnix();
-  const existingReflection = (await db.select().from(reflections).where(eq(reflections.weekStarting, weekStart)))[0] ?? null;
-
-  const pinned = await db.select().from(goals).where(eq(goals.pinned, true));
   const recentDone = log.filter((l) => l.outcome === "done").sort((a, b) => b.doneAt - a.doneAt).slice(0, 12);
 
   return (

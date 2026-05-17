@@ -19,11 +19,18 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
   const area = areaParam as Area;
   const meta = AREA_META[area];
 
-  const areaGoals = await db.select().from(goals).where(eq(goals.area, area)).orderBy(asc(goals.id));
-  const goalIds = areaGoals.map((g) => g.id);
+  const [areaGoals, standaloneActions, areaNotes, areaPeople] = await Promise.all([
+    db.select().from(goals).where(eq(goals.area, area)).orderBy(asc(goals.id)),
+    db.select().from(actions)
+      .where(and(eq(actions.area, area), sql`goal_id IS NULL`, eq(actions.status, "active")))
+      .orderBy(asc(actions.nextDueAt)),
+    db.select().from(notes).where(eq(notes.area, area)).orderBy(asc(notes.id)),
+    area === "relationships" ? db.select().from(people).orderBy(asc(people.id)) : Promise.resolve([] as any[]),
+  ]);
 
   let progress = new Map<number, { done: number; total: number }>();
-  if (goalIds.length) {
+  if (areaGoals.length) {
+    const goalIds = areaGoals.map((g) => g.id);
     const ms = await db.select().from(milestones).where(sql`goal_id IN ${goalIds}`);
     for (const g of areaGoals) progress.set(g.id, { done: 0, total: 0 });
     for (const m of ms) {
@@ -32,14 +39,6 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
       if (m.doneAt) p.done += 1;
     }
   }
-
-  const standaloneActions = await db.select().from(actions)
-    .where(and(eq(actions.area, area), sql`goal_id IS NULL`, eq(actions.status, "active")))
-    .orderBy(asc(actions.nextDueAt));
-
-  const areaNotes = await db.select().from(notes).where(eq(notes.area, area)).orderBy(asc(notes.id));
-
-  const areaPeople = area === "relationships" ? await db.select().from(people).orderBy(asc(people.id)) : [];
 
   return (
     <div className="space-y-6">

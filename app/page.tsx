@@ -24,14 +24,16 @@ export default async function TodayPage() {
   let allPeople: typeof people.$inferSelect[] = [];
   try {
     const cutoff = startOfTodayUnix();
-    due = await db.select().from(actions)
-      .where(and(
-        eq(actions.status, "active"),
-        lte(actions.nextDueAt, cutoff),
-        inArray(actions.area, ["tasks", "habits", "study", "projects"]),
-      ))
-      .orderBy(asc(actions.nextDueAt));
-    allPeople = await db.select().from(people);
+    [due, allPeople] = await Promise.all([
+      db.select().from(actions)
+        .where(and(
+          eq(actions.status, "active"),
+          lte(actions.nextDueAt, cutoff),
+          inArray(actions.area, ["tasks", "habits", "study", "projects"]),
+        ))
+        .orderBy(asc(actions.nextDueAt)),
+      db.select().from(people),
+    ]);
   } catch (e: unknown) {
     return <SetupNeeded error={e instanceof Error ? e.message : String(e)} />;
   }

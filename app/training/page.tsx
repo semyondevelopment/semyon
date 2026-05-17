@@ -37,17 +37,22 @@ export default async function TrainingPage() {
       (acc[s.exercise] ||= []).push(s);
       return acc;
     }, {});
-    for (const block of mainSession.blocks) {
-      const prior = await db.select().from(setLog)
-        .where(and(
-          eq(setLog.actionId, mainAction.id),
-          eq(setLog.exercise, block.name),
-          ne(setLog.sessionDate, tkey),
-        ))
-        .orderBy(desc(setLog.sessionDate), asc(setLog.setIndex));
-      if (prior.length) {
-        const date = prior[0].sessionDate;
-        lastByExercise[block.name] = { date, sets: prior.filter((p) => p.sessionDate === date) };
+    const priors = await Promise.all(
+      mainSession.blocks.map((block) =>
+        db.select().from(setLog)
+          .where(and(
+            eq(setLog.actionId, mainAction.id),
+            eq(setLog.exercise, block.name),
+            ne(setLog.sessionDate, tkey),
+          ))
+          .orderBy(desc(setLog.sessionDate), asc(setLog.setIndex))
+          .then((rows) => ({ block, rows })),
+      ),
+    );
+    for (const { block, rows } of priors) {
+      if (rows.length) {
+        const date = rows[0].sessionDate;
+        lastByExercise[block.name] = { date, sets: rows.filter((p) => p.sessionDate === date) };
       } else {
         lastByExercise[block.name] = null;
       }

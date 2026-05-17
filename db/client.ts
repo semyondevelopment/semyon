@@ -143,8 +143,13 @@ let initPromise: Promise<void> | null = null;
 export function ensureDb(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
+      // In production we assume tables already exist (created by `npm run db:seed`).
+      // Skipping DDL saves ~12 roundtrips per cold start.
+      if (process.env.VERCEL && process.env.SKIP_DB_INIT !== "false") return;
       const c = getClient();
-      for (const stmt of DDL) await c.execute(stmt);
+      // Single roundtrip for all DDL.
+      const joined = DDL.map((s) => s.trim().replace(/;\s*$/, "")).join(";\n") + ";";
+      await c.executeMultiple(joined);
     })();
   }
   return initPromise;

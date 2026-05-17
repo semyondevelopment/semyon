@@ -16,16 +16,18 @@ export default async function ContentPage() {
   await ensureDb();
   const cutoff = startOfTodayUnix();
 
-  const dueMoney = await db.select().from(actions)
-    .where(and(eq(actions.status, "active"), eq(actions.area, "money"), lte(actions.nextDueAt, cutoff)))
-    .orderBy(asc(actions.nextDueAt));
-
-  const moneyNotes = await db.select().from(notes).where(eq(notes.area, "money")).orderBy(desc(notes.id));
-
-  const [{ mrrSum }] = await db.select({ mrrSum: sql<number>`COALESCE(SUM(${leadsT.mrr}), 0)` }).from(leadsT).where(eq(leadsT.status, "signed"));
-  const [{ activeLeads }] = await db.select({ activeLeads: sql<number>`COUNT(*)` }).from(leadsT);
-  const moneyGoals = await db.select().from(goals).where(eq(goals.area, "money")).orderBy(asc(goals.id));
+  const [dueMoney, moneyNotes, moneyGoals, mrrAgg, leadAgg] = await Promise.all([
+    db.select().from(actions)
+      .where(and(eq(actions.status, "active"), eq(actions.area, "money"), lte(actions.nextDueAt, cutoff)))
+      .orderBy(asc(actions.nextDueAt)),
+    db.select().from(notes).where(eq(notes.area, "money")).orderBy(desc(notes.id)),
+    db.select().from(goals).where(eq(goals.area, "money")).orderBy(asc(goals.id)),
+    db.select({ mrrSum: sql<number>`COALESCE(SUM(${leadsT.mrr}), 0)` }).from(leadsT).where(eq(leadsT.status, "signed")),
+    db.select({ activeLeads: sql<number>`COUNT(*)` }).from(leadsT),
+  ]);
   const focusGoal = moneyGoals.find((g) => g.pinned) ?? moneyGoals[0];
+  const mrrSum = mrrAgg[0].mrrSum;
+  const activeLeads = leadAgg[0].activeLeads;
 
   const buckets = {
     create:   dueMoney.filter((a) => /film|post|edit|spec|content/i.test(a.title)),
