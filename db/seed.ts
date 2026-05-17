@@ -117,11 +117,11 @@ async function main() {
     title: "Maintain muay thai sharpness",
     why: "Keep timing, conditioning, and ring instincts alive while bulking. Skill > intensity.",
     targetMetric: "sessions/week",
-    targetValue: "2",
+    targetValue: "2 @ Iron Fist",
   });
   await db.insert(actions).values([
-    { goalId: muay, area: "health", title: "Muay Thai — class (pads/drills)", cadence: "weekly", nextDueAt: TUE },
-    { goalId: muay, area: "health", title: "Muay Thai — sparring (technical)", cadence: "weekly", nextDueAt: SAT },
+    { goalId: muay, area: "health", title: "Muay Thai — Int/Adv class (5:30pm @ Iron Fist)", cadence: "weekly", nextDueAt: THU },
+    { goalId: muay, area: "health", title: "Muay Thai — sparring (Sat 9am @ Iron Fist)",     cadence: "weekly", nextDueAt: SAT },
   ]);
 
   const bjj = await insertGoal({
@@ -133,14 +133,14 @@ async function main() {
     targetDate: SIX_MONTHS,
   });
   await db.insert(milestones).values([
-    { goalId: bjj, title: "Sign up + first 5 classes", order: 1 },
+    { goalId: bjj, title: "Sign up at Iron Fist + first 5 classes", order: 1 },
     { goalId: bjj, title: "Survive every roll for a full round", order: 2 },
     { goalId: bjj, title: "First submission from live roll", order: 3 },
     { goalId: bjj, title: "4 stripes on white belt", order: 4 },
   ]);
   await db.insert(actions).values([
-    { goalId: bjj, area: "health", title: "BJJ — fundamentals class", cadence: "weekly", nextDueAt: THU },
-    { goalId: bjj, area: "health", title: "BJJ — open mat / rolling", cadence: "weekly", nextDueAt: SUN },
+    { goalId: bjj, area: "health", title: "BJJ Gi — fundamentals class (Tue 5:30pm @ Iron Fist)", cadence: "weekly", nextDueAt: TUE },
+    { goalId: bjj, area: "health", title: "BJJ — open mat / rolling (Fri 5:30pm @ Iron Fist)",    cadence: "weekly", nextDueAt: FRI },
   ]);
 
   const cardio = await insertGoal({
@@ -152,6 +152,7 @@ async function main() {
   });
   await db.insert(actions).values([
     { goalId: cardio, area: "health", title: "Z2 easy run (30–40 min)", cadence: "weekly", nextDueAt: SUN },
+    { goalId: cardio, area: "health", title: "Long walk (60+ min)", cadence: "weekly", nextDueAt: SUN },
     { goalId: cardio, area: "health", title: "10k steps", cadence: "daily", nextDueAt: now },
   ]);
 

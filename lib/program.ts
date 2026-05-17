@@ -170,13 +170,13 @@ export function sessionForAction(title: string): Session | null {
   return null;
 }
 
-// Weekly schedule view (for "this week").
+// Weekly schedule view (for "this week"). Aligned to Iron Fist (Brisbane) timetable.
 export const WEEK_SCHEDULE = [
-  { day: "Mon", session: "Upper A — Push focus", type: "lift" },
-  { day: "Tue", session: "Muay Thai — class",    type: "muay" },
-  { day: "Wed", session: "Lower A — Squat focus", type: "lift" },
-  { day: "Thu", session: "BJJ — fundamentals",    type: "bjj" },
-  { day: "Fri", session: "Upper B — Pull focus",  type: "lift" },
-  { day: "Sat", session: "Lower B — Deadlift  +  Muay Thai sparring (PM)", type: "lift" },
-  { day: "Sun", session: "Z2 run  +  BJJ open mat", type: "run" },
+  { day: "Mon", session: "Upper A — Push (lift)",                              type: "lift" },
+  { day: "Tue", session: "BJJ Gi — Fundamentals · 5:30pm",                     type: "bjj"  },
+  { day: "Wed", session: "Lower A — Squat (lift)",                             type: "lift" },
+  { day: "Thu", session: "Muay Thai — Int/Adv · 5:30pm",                       type: "muay" },
+  { day: "Fri", session: "Upper B — Pull  +  BJJ Open Mat · 5:30pm",           type: "lift" },
+  { day: "Sat", session: "MT Sparring · 9am  +  Lower B — Deadlift (PM)",      type: "lift" },
+  { day: "Sun", session: "Z2 easy run  +  long walk",                          type: "run"  },
 ] as const;
