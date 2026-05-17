@@ -141,6 +141,8 @@ export const modules = sqliteTable("modules", {
   color: text("color"),
   status: text("status").notNull().default("active"), // active | done | dropped
   term: text("term"),
+  canvasCourseId: integer("canvas_course_id").unique(),
+  canvasUrl: text("canvas_url"),
   createdAt: integer("created_at").notNull().default(now),
 });
 
@@ -153,6 +155,29 @@ export const assignments = sqliteTable("assignments", {
   grade: text("grade"),
   doneAt: integer("done_at"),
   notes: text("notes"),
+  canvasId: integer("canvas_id").unique(),
+  canvasUrl: text("canvas_url"),
+  submitted: integer("submitted", { mode: "boolean" }).notNull().default(false),
+});
+
+export const announcements = sqliteTable("announcements", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  canvasId: integer("canvas_id").unique(),
+  moduleId: integer("module_id").references(() => modules.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  body: text("body"),
+  url: text("url"),
+  postedAt: integer("posted_at"),
+  seenAt: integer("seen_at"),
+  createdAt: integer("created_at").notNull().default(now),
+});
+
+export const syncState = sqliteTable("sync_state", {
+  service: text("service").primaryKey(),
+  lastRunAt: integer("last_run_at"),
+  lastStatus: text("last_status"),
+  lastError: text("last_error"),
+  stats: text("stats"),
 });
 
 export const books = sqliteTable("books", {
@@ -234,6 +259,8 @@ export type Lead = typeof leads.$inferSelect;
 export type Reflection = typeof reflections.$inferSelect;
 export type Module = typeof modules.$inferSelect;
 export type Assignment = typeof assignments.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect;
+export type SyncState = typeof syncState.$inferSelect;
 export type Book = typeof books.$inferSelect;
 export type StudyTopic = typeof studyTopics.$inferSelect;
 export type StudySession = typeof studySessions.$inferSelect;

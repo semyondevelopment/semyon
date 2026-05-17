@@ -217,6 +217,25 @@ const DDL = [
     notes TEXT,
     created_at INTEGER NOT NULL DEFAULT (unixepoch())
   )`,
+  `CREATE TABLE IF NOT EXISTS announcements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    canvas_id INTEGER UNIQUE,
+    module_id INTEGER REFERENCES modules(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    body TEXT,
+    url TEXT,
+    posted_at INTEGER,
+    seen_at INTEGER,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_announcements_posted ON announcements(posted_at DESC)`,
+  `CREATE TABLE IF NOT EXISTS sync_state (
+    service TEXT PRIMARY KEY,
+    last_run_at INTEGER,
+    last_status TEXT,
+    last_error TEXT,
+    stats TEXT
+  )`,
 ];
 
 // Non-fatal ALTER statements for additive columns. SQLite has no IF NOT EXISTS for ADD COLUMN.
@@ -230,6 +249,11 @@ const ADD_COLUMNS: { table: string; column: string; type: string }[] = [
   { table: "people", column: "gift_ideas",    type: "TEXT" },
   { table: "people", column: "last_conv_note", type: "TEXT" },
   { table: "daily_log", column: "sleep_hours", type: "TEXT" },
+  { table: "modules",     column: "canvas_course_id", type: "INTEGER" },
+  { table: "modules",     column: "canvas_url",       type: "TEXT" },
+  { table: "assignments", column: "canvas_id",        type: "INTEGER" },
+  { table: "assignments", column: "canvas_url",       type: "TEXT" },
+  { table: "assignments", column: "submitted",        type: "INTEGER NOT NULL DEFAULT 0" },
 ];
 
 let initPromise: Promise<void> | null = null;

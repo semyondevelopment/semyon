@@ -1,7 +1,7 @@
 import { db, ensureDb } from "@/db/client";
-import { modules, assignments, books, studyTopics, notes } from "@/db/schema";
+import { modules, assignments, books, studyTopics, notes, announcements, syncState } from "@/db/schema";
 import { asc, desc, eq } from "drizzle-orm";
-import { GraduationCap, BookOpen, Compass, ArrowLeft, AlarmClock, Plus, Pin } from "lucide-react";
+import { GraduationCap, BookOpen, Compass, ArrowLeft, AlarmClock, Plus, Pin, Megaphone, RefreshCw, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import SetupNeeded from "@/components/SetupNeeded";
 import {
@@ -10,6 +10,7 @@ import {
   createTopic, deleteTopic,
 } from "@/app/actions";
 import { fmtDate } from "@/lib/scheduling";
+import CanvasSyncButton from "@/components/CanvasSyncButton";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,16 @@ export default async function StudyPage() {
   try { await ensureDb(); }
   catch (e) { return <SetupNeeded error={e instanceof Error ? e.message : String(e)} />; }
 
-  const [allModules, allAssignments, allBooks, allTopics, areaNotes] = await Promise.all([
+  const [allModules, allAssignments, allBooks, allTopics, areaNotes, allAnnouncements, canvasSync] = await Promise.all([
     db.select().from(modules).orderBy(asc(modules.id)),
     db.select().from(assignments).orderBy(asc(assignments.dueDate)),
     db.select().from(books).orderBy(desc(books.pinned), asc(books.id)),
     db.select().from(studyTopics).orderBy(asc(studyTopics.id)),
     db.select().from(notes).where(eq(notes.area, "study")).orderBy(asc(notes.id)),
+    db.select().from(announcements).orderBy(desc(announcements.postedAt)).limit(10),
+    db.select().from(syncState).where(eq(syncState.service, "canvas")),
   ]);
+  const lastSync = canvasSync[0];
 
   const now = Math.floor(Date.now() / 1000);
   const upcoming = allAssignments
@@ -50,7 +54,40 @@ export default async function StudyPage() {
             <h1 className="mt-1 text-[36px] font-semibold leading-none tracking-tight">Study</h1>
           </div>
         </div>
+        <CanvasSyncButton lastRunAt={lastSync?.lastRunAt ?? null} lastStatus={lastSync?.lastStatus ?? null} />
       </header>
+
+      {allAnnouncements.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">
+            <Megaphone size={14} className="text-violet-400" />
+            Announcements
+          </h2>
+          <div className="space-y-2">
+            {allAnnouncements.map((a) => {
+              const m = allModules.find((x) => x.id === a.moduleId);
+              const unread = !a.seenAt;
+              return (
+                <a key={a.id} href={a.url ?? "#"} target="_blank" rel="noreferrer" className={`card group block p-3 transition hover:border-violet-500/40 ${unread ? "border-violet-500/30" : ""}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        {unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-violet-400" />}
+                        <div className="text-sm font-medium truncate">{a.title}</div>
+                      </div>
+                      <div className="mt-0.5 text-[11px] text-sub">
+                        {m?.code ?? m?.name ?? "—"}{a.postedAt ? ` · ${fmtDate(a.postedAt)}` : ""}
+                      </div>
+                      {a.body && <div className="mt-1 text-xs text-ink/80 line-clamp-2">{a.body}</div>}
+                    </div>
+                    <ExternalLink size={12} className="shrink-0 text-sub" />
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {upcoming.length > 0 && (
         <section className="space-y-2">

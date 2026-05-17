@@ -494,6 +494,14 @@ export async function setActionEnergy(actionId: number, energy: "low" | "med" | 
   revalidatePath("/", "layout");
 }
 
+// ─── Canvas sync ────────────────────────────────────────────────────
+export async function syncCanvasNow() {
+  const { syncCanvas } = await import("@/lib/canvasSync");
+  const r = await syncCanvas();
+  revalidatePath("/study");
+  return r;
+}
+
 // ─── Weekly reflection ──────────────────────────────────────────────
 export async function saveReflection(formData: FormData) {
   await ensureDb();
