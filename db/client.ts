@@ -1,26 +1,44 @@
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
-import path from "node:path";
-import fs from "node:fs";
+import { createClient, type Client } from "@libsql/client";
+import { drizzle, type LibSQLDatabase } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
-// Use Turso when env vars are set (production); fall back to local SQLite file (dev).
-const tursoUrl = process.env.TURSO_DATABASE_URL;
-const tursoToken = process.env.TURSO_AUTH_TOKEN;
+// Defer all filesystem + client creation until first use, so module import
+// is safe at build time (Vercel build is read-only outside /tmp).
+let _client: Client | null = null;
+let _db: LibSQLDatabase<typeof schema> | null = null;
 
-let url: string;
-let authToken: string | undefined;
-
-if (tursoUrl) {
-  url = tursoUrl;
-  authToken = tursoToken;
-} else {
-  const dbDir = path.join(process.cwd(), "db");
-  if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-  url = `file:${path.join(dbDir, "data.sqlite")}`;
+function getClient(): Client {
+  if (_client) return _client;
+  const tursoUrl = process.env.TURSO_DATABASE_URL;
+  const tursoToken = process.env.TURSO_AUTH_TOKEN;
+  if (tursoUrl) {
+    _client = createClient({ url: tursoUrl, authToken: tursoToken });
+  } else {
+    if (process.env.VERCEL) {
+      throw new Error(
+        "Missing TURSO_DATABASE_URL. Set TURSO_DATABASE_URL and TURSO_AUTH_TOKEN in Vercel project settings.",
+      );
+    }
+    // Local dev: lazy-require node-only deps + create the sqlite dir.
+    const path = require("node:path") as typeof import("node:path");
+    const fs = require("node:fs") as typeof import("node:fs");
+    const dbDir = path.join(process.cwd(), "db");
+    if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
+    const dbPath = path.join(dbDir, "data.sqlite");
+    _client = createClient({ url: `file:${dbPath}` });
+  }
+  return _client;
 }
 
-const client = createClient({ url, authToken });
+// Proxy so existing `import { db } from "@/db/client"` still works.
+export const db = new Proxy({} as LibSQLDatabase<typeof schema>, {
+  get(_t, prop) {
+    if (!_db) _db = drizzle(getClient(), { schema });
+    return (_db as any)[prop];
+  },
+});
+
+export { schema };
 
 const DDL = [
   `CREATE TABLE IF NOT EXISTS goals (
@@ -125,11 +143,9 @@ let initPromise: Promise<void> | null = null;
 export function ensureDb(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
-      for (const stmt of DDL) await client.execute(stmt);
+      const c = getClient();
+      for (const stmt of DDL) await c.execute(stmt);
     })();
   }
   return initPromise;
 }
-
-export const db = drizzle(client, { schema });
-export { schema };

@@ -111,7 +111,7 @@ function AreaSelect({ defaultValue }: { defaultValue: string }) {
   return (
     <select name="area" className="input" defaultValue={defaultValue}>
       {AREA_ORDER.map((a) => (
-        <option key={a} value={a}>{AREA_META[a].emoji} {AREA_META[a].label}</option>
+        <option key={a} value={a}>{AREA_META[a].label}</option>
       ))}
     </select>
   );
