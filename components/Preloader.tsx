@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const WORDS = ["nothing", "changes", "if", "nothing", "changes"];
-const HOLD_MS = 1700;
+const HOLD_MS = 1100;
 
 export default function Preloader() {
   const [show, setShow] = useState(true);
@@ -45,8 +45,8 @@ export default function Preloader() {
                   initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   transition={{
-                    delay: 0.08 + i * 0.09,
-                    duration: 0.55,
+                    delay: 0.05 + i * 0.07,
+                    duration: 0.45,
                     ease: [0.2, 0.8, 0.2, 1],
                   }}
                   className={`text-3xl font-semibold tracking-tight sm:text-4xl ${
@@ -69,7 +69,7 @@ export default function Preloader() {
             aria-hidden
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 56, opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.55, ease: [0.2, 0.8, 0.2, 1] }}
+            transition={{ delay: 0.45, duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
             className="relative mt-6 h-[2px] rounded-full bg-accent"
             style={{ boxShadow: "0 0 18px rgba(209,250,110,0.7)" }}
           />
@@ -78,7 +78,7 @@ export default function Preloader() {
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.05, duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+            transition={{ delay: 0.7, duration: 0.4, ease: [0.2, 0.8, 0.2, 1] }}
             className="mt-6 text-[10px] uppercase tracking-[0.32em] text-sub"
           >
             Life OS
