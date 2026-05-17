@@ -7,7 +7,7 @@ import { AREA_META } from "@/lib/areas";
 import type { Action, Area } from "@/db/schema";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { Check, Clock, X, Flame, Repeat } from "lucide-react";
+import { Check, Clock, X, Flame, Repeat, Zap } from "lucide-react";
 import { AreaIcon } from "@/components/AreaBadge";
 
 export default function ActionRow({ a, showArea = false }: { a: Action; showArea?: boolean }) {
@@ -78,6 +78,12 @@ export default function ActionRow({ a, showArea = false }: { a: Action; showArea
               {a.streak > 0 && (
                 <span className="chip inline-flex items-center gap-1 text-accent border-accent/30">
                   <Flame size={11} strokeWidth={2.2} className="flicker" />{a.streak}
+                </span>
+              )}
+              {a.energy && (
+                <span className="chip inline-flex items-center gap-1">
+                  <Zap size={10} strokeWidth={2.2} className={a.energy === "high" ? "text-amber-400" : a.energy === "med" ? "text-sky-400" : "text-sub"} />
+                  {a.energy}
                 </span>
               )}
             </div>

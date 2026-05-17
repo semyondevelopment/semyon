@@ -1,8 +1,8 @@
 "use client";
 import { useTransition, useState } from "react";
-import { bumpDaily, logWeight, resetToday } from "@/app/actions";
+import { bumpDaily, logWeight, logSleep, resetToday } from "@/app/actions";
 import type { DailyLog } from "@/db/schema";
-import { Beef, Flame, Scale, Plus, Minus, RotateCcw } from "lucide-react";
+import { Beef, Flame, Scale, Plus, Minus, RotateCcw, Moon } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function DailyLogClient({
@@ -59,33 +59,77 @@ export default function DailyLogClient({
         />
       </div>
 
-      <div className="relative mt-3 flex items-center justify-between rounded-xl border border-line bg-bg/40 px-3 py-2">
-        <div className="inline-flex items-center gap-2 text-sm">
-          <Scale size={14} className="text-sky-400" />
-          <span className="text-sub">Weight</span>
-          <span className="text-ink tabular-nums">{today?.weightKg ?? latestWeightKg ?? "—"}{(today?.weightKg ?? latestWeightKg) ? " kg" : ""}</span>
-        </div>
-        {!weightOpen ? (
-          <button onClick={() => setWeightOpen(true)} className="text-[11px] text-sub transition hover:text-ink">log</button>
-        ) : (
-          <form
-            action={(fd) => start(async () => { await logWeight(fd); setWeightOpen(false); })}
-            className="flex items-center gap-1.5"
-          >
-            <input
-              name="weight_kg"
-              autoFocus
-              defaultValue={today?.weightKg ?? latestWeightKg ?? ""}
-              placeholder="kg"
-              inputMode="decimal"
-              className="w-16 rounded-md border border-line bg-bg px-2 py-1 text-sm focus:outline-none focus:border-accent"
-            />
-            <button type="submit" className="rounded-md bg-accent px-2 py-1 text-xs font-medium text-black active:scale-95">save</button>
-            <button type="button" onClick={() => setWeightOpen(false)} className="text-[11px] text-sub">×</button>
-          </form>
-        )}
+      <div className="relative mt-3 grid grid-cols-2 gap-3">
+        <InlineLog
+          icon={<Scale size={14} className="text-sky-400" />}
+          label="Weight"
+          value={today?.weightKg ?? latestWeightKg ?? "—"}
+          unit="kg"
+          inputName="weight_kg"
+          defaultValue={today?.weightKg ?? latestWeightKg ?? ""}
+          placeholder="kg"
+          onSubmit={(fd) => start(async () => { await logWeight(fd); })}
+          isOpen={weightOpen}
+          onOpenChange={setWeightOpen}
+        />
+        <SleepInline today={today} pending={pending} start={start} />
       </div>
     </div>
+  );
+}
+
+function InlineLog({
+  icon, label, value, unit, inputName, defaultValue, placeholder, onSubmit, isOpen, onOpenChange,
+}: {
+  icon: React.ReactNode; label: string; value: string; unit: string;
+  inputName: string; defaultValue: string; placeholder: string;
+  onSubmit: (fd: FormData) => void; isOpen: boolean; onOpenChange: (b: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-line bg-bg/40 px-3 py-2">
+      <div className="inline-flex items-center gap-2 text-sm min-w-0">
+        {icon}
+        <span className="text-sub">{label}</span>
+        <span className="text-ink tabular-nums truncate">{value}{value !== "—" ? ` ${unit}` : ""}</span>
+      </div>
+      {!isOpen ? (
+        <button onClick={() => onOpenChange(true)} className="text-[11px] text-sub transition hover:text-ink shrink-0">log</button>
+      ) : (
+        <form
+          action={(fd) => { onSubmit(fd); onOpenChange(false); }}
+          className="flex items-center gap-1.5 shrink-0"
+        >
+          <input
+            name={inputName}
+            autoFocus
+            defaultValue={defaultValue}
+            placeholder={placeholder}
+            inputMode="decimal"
+            className="w-14 rounded-md border border-line bg-bg px-2 py-1 text-sm focus:outline-none focus:border-accent"
+          />
+          <button type="submit" className="rounded-md bg-accent px-2 py-1 text-xs font-medium text-black active:scale-95">✓</button>
+          <button type="button" onClick={() => onOpenChange(false)} className="text-[11px] text-sub">×</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function SleepInline({ today, pending, start }: { today: DailyLog | null; pending: boolean; start: (fn: () => void) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <InlineLog
+      icon={<Moon size={14} className="text-violet-300" />}
+      label="Sleep"
+      value={today?.sleepHours ?? "—"}
+      unit="hrs"
+      inputName="sleep_hours"
+      defaultValue={today?.sleepHours ?? ""}
+      placeholder="hrs"
+      onSubmit={(fd) => start(async () => { await logSleep(fd); })}
+      isOpen={open}
+      onOpenChange={setOpen}
+    />
   );
 }
 

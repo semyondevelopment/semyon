@@ -8,6 +8,8 @@ import { sessionForAction, WEEK_SCHEDULE, type Session } from "@/lib/program";
 import { StaggerList, StaggerItem } from "@/components/Stagger";
 import SessionDetail from "@/components/SessionDetail";
 import DailyLog from "@/components/DailyLog";
+import WeightTrend from "@/components/WeightTrend";
+import PRBoard from "@/components/PRBoard";
 import { Dumbbell, Calendar, Flame } from "lucide-react";
 import type { SetLog } from "@/db/schema";
 
@@ -97,6 +99,10 @@ export default async function TrainingPage() {
           </StaggerList>
         </section>
       )}
+
+      <WeightTrend />
+
+      <PRBoard />
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">

@@ -10,6 +10,7 @@ import { Users } from "lucide-react";
 import { AREA_META } from "@/lib/areas";
 import DailyLog from "@/components/DailyLog";
 import SetupNeeded from "@/components/SetupNeeded";
+import Pomodoro from "@/components/Pomodoro";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +63,10 @@ export default async function TodayPage() {
         </div>
       </header>
 
-      <QuickAdd area="tasks" placeholder="Add a task for today…" />
+      <div className="flex items-stretch gap-2">
+        <div className="flex-1"><QuickAdd area="tasks" placeholder="Add a task for today…" /></div>
+        <Pomodoro />
+      </div>
 
       <DailyLog />
 

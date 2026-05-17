@@ -6,7 +6,7 @@ import type { Area } from "@/db/schema";
 import ActionRow from "@/components/ActionRow";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { createAction, createMilestone, toggleMilestone, pinGoal, deleteGoal } from "@/app/actions";
+import { createAction, createMilestone, toggleMilestone, pinGoal, deleteGoal, updateGoalMeta } from "@/app/actions";
 import { fmtDate } from "@/lib/scheduling";
 import { ArrowLeft, Pin, Trash2, Plus, Check, Target, Calendar } from "lucide-react";
 
@@ -119,6 +119,32 @@ export default async function GoalPage({ params }: { params: Promise<{ id: strin
           </div>
         </form>
       </section>
+
+      {g.area === "projects" && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-medium text-sub">Project meta</h2>
+          <form action={updateGoalMeta} className="card space-y-3 p-4">
+            <input type="hidden" name="id" value={g.id} />
+            <label className="block">
+              <span className="label">Status</span>
+              <select name="project_status" defaultValue={g.projectStatus ?? "building"} className="input mt-1">
+                {["planning", "building", "shipped", "paused", "archived"].map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="label">Share URL (live link / repo)</span>
+              <input name="share_url" defaultValue={g.shareUrl ?? ""} placeholder="https://…" className="input mt-1" />
+            </label>
+            <label className="block">
+              <span className="label">Lessons learned</span>
+              <textarea name="lessons" defaultValue={g.lessons ?? ""} rows={4} placeholder="What did you learn shipping this? Mistakes, surprises, what to do differently." className="input mt-1 resize-none" />
+            </label>
+            <button className="btn btn-accent">Save</button>
+          </form>
+        </section>
+      )}
 
       {log.length > 0 && (
         <section className="space-y-2">

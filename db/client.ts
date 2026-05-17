@@ -137,6 +137,99 @@ const DDL = [
     change TEXT,
     created_at INTEGER NOT NULL DEFAULT (unixepoch())
   )`,
+  `CREATE TABLE IF NOT EXISTS mind_log (
+    date_key TEXT PRIMARY KEY,
+    mood INTEGER,
+    energy INTEGER,
+    gratitude TEXT,
+    journal TEXT,
+    stress TEXT,
+    updated_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE TABLE IF NOT EXISTS expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    category TEXT,
+    date_key TEXT NOT NULL,
+    recurring INTEGER NOT NULL DEFAULT 0,
+    notes TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date_key DESC)`,
+  `CREATE TABLE IF NOT EXISTS modules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    code TEXT,
+    credits INTEGER,
+    current_grade TEXT,
+    color TEXT,
+    status TEXT NOT NULL DEFAULT 'active',
+    term TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE TABLE IF NOT EXISTS assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    module_id INTEGER NOT NULL REFERENCES modules(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    weight_pct INTEGER,
+    due_date INTEGER,
+    grade TEXT,
+    done_at INTEGER,
+    notes TEXT
+  )`,
+  `CREATE TABLE IF NOT EXISTS books (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    author TEXT,
+    status TEXT NOT NULL DEFAULT 'queued',
+    pages_total INTEGER,
+    pages_done INTEGER NOT NULL DEFAULT 0,
+    started_at INTEGER,
+    finished_at INTEGER,
+    notes TEXT,
+    pinned INTEGER NOT NULL DEFAULT 0
+  )`,
+  `CREATE TABLE IF NOT EXISTS study_topics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    est_hours INTEGER,
+    hours_logged INTEGER NOT NULL DEFAULT 0,
+    color TEXT,
+    notes TEXT,
+    status TEXT NOT NULL DEFAULT 'active'
+  )`,
+  `CREATE TABLE IF NOT EXISTS study_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    module_id INTEGER REFERENCES modules(id) ON DELETE SET NULL,
+    book_id INTEGER REFERENCES books(id) ON DELETE SET NULL,
+    topic_id INTEGER REFERENCES study_topics(id) ON DELETE SET NULL,
+    minutes INTEGER NOT NULL,
+    summary TEXT,
+    done_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+  `CREATE TABLE IF NOT EXISTS photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind TEXT NOT NULL,
+    url TEXT,
+    blob_key TEXT,
+    date_key TEXT NOT NULL,
+    notes TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  )`,
+];
+
+// Non-fatal ALTER statements for additive columns. SQLite has no IF NOT EXISTS for ADD COLUMN.
+const ADD_COLUMNS: { table: string; column: string; type: string }[] = [
+  { table: "goals", column: "project_status", type: "TEXT" },
+  { table: "goals", column: "lessons",        type: "TEXT" },
+  { table: "goals", column: "share_url",      type: "TEXT" },
+  { table: "actions", column: "best_streak",  type: "INTEGER NOT NULL DEFAULT 0" },
+  { table: "actions", column: "energy",       type: "TEXT" },
+  { table: "people", column: "birthday",      type: "TEXT" },
+  { table: "people", column: "gift_ideas",    type: "TEXT" },
+  { table: "people", column: "last_conv_note", type: "TEXT" },
+  { table: "daily_log", column: "sleep_hours", type: "TEXT" },
 ];
 
 let initPromise: Promise<void> | null = null;
@@ -147,10 +240,25 @@ export function ensureDb(): Promise<void> {
       // Skipping DDL saves ~12 roundtrips per cold start.
       if (process.env.VERCEL && process.env.SKIP_DB_INIT !== "false") return;
       const c = getClient();
-      // Single roundtrip for all DDL.
       const joined = DDL.map((s) => s.trim().replace(/;\s*$/, "")).join(";\n") + ";";
       await c.executeMultiple(joined);
+      // Add new columns to existing tables. Ignore "duplicate column" errors.
+      for (const a of ADD_COLUMNS) {
+        try { await c.execute(`ALTER TABLE ${a.table} ADD COLUMN ${a.column} ${a.type}`); }
+        catch { /* column already exists */ }
+      }
     })();
   }
   return initPromise;
+}
+
+// Force-run the full DDL + ALTER pass. Used by the migration script and the seed.
+export async function migrateDb(): Promise<void> {
+  const c = getClient();
+  const joined = DDL.map((s) => s.trim().replace(/;\s*$/, "")).join(";\n") + ";";
+  await c.executeMultiple(joined);
+  for (const a of ADD_COLUMNS) {
+    try { await c.execute(`ALTER TABLE ${a.table} ADD COLUMN ${a.column} ${a.type}`); }
+    catch { /* column already exists */ }
+  }
 }
