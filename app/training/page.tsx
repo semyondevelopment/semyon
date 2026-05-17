@@ -77,32 +77,37 @@ export default async function TrainingPage() {
         </div>
       </header>
 
-      <DailyLog />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {mainSession && mainAction && (
+            <SessionDetail
+              action={mainAction}
+              session={mainSession}
+              todayByExercise={todayByExercise}
+              lastByExercise={lastByExercise}
+            />
+          )}
 
-      {mainSession && mainAction && (
-        <SessionDetail
-          action={mainAction}
-          session={mainSession}
-          todayByExercise={todayByExercise}
-          lastByExercise={lastByExercise}
-        />
-      )}
+          {supports.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">
+                <Flame size={14} className="text-amber-400" />
+                Also today
+              </h2>
+              <StaggerList className="space-y-2">
+                {supports.map((a) => <StaggerItem key={a.id}><ActionRow a={a} /></StaggerItem>)}
+              </StaggerList>
+            </section>
+          )}
 
-      {supports.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">
-            <Flame size={14} className="text-amber-400" />
-            Also today
-          </h2>
-          <StaggerList className="space-y-2">
-            {supports.map((a) => <StaggerItem key={a.id}><ActionRow a={a} /></StaggerItem>)}
-          </StaggerList>
-        </section>
-      )}
+          <PRBoard />
+        </div>
 
-      <WeightTrend />
-
-      <PRBoard />
+        <div className="space-y-6">
+          <DailyLog />
+          <WeightTrend />
+        </div>
+      </div>
 
       <section className="space-y-2">
         <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">

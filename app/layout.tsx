@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import BottomNav from "@/components/BottomNav";
+import Sidebar from "@/components/Sidebar";
 import SwRegister from "@/components/SwRegister";
 import Preloader from "@/components/Preloader";
 
@@ -23,7 +24,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-dvh">
         <Preloader />
-        <main className="mx-auto max-w-2xl px-4 pt-6 pb-40">{children}</main>
+        <Sidebar />
+        <main className="md:pl-60">
+          <div className="mx-auto max-w-2xl px-4 pt-6 pb-40 md:max-w-5xl md:px-8 md:py-8">
+            {children}
+          </div>
+        </main>
         <BottomNav />
         <SwRegister />
       </body>

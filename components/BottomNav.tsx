@@ -20,12 +20,12 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* Floating capture button (FAB) */}
+      {/* Floating capture button (FAB) — mobile only */}
       <Link
         href="/capture"
         aria-label="Add"
         className={cn(
-          "fixed right-4 z-40 flex h-14 w-14 items-center justify-center rounded-2xl text-black transition active:scale-90",
+          "fixed right-4 z-40 flex h-14 w-14 items-center justify-center rounded-2xl text-black transition active:scale-90 md:hidden",
           "bg-gradient-to-br from-accent to-[#a3e635]",
           "shadow-[0_14px_40px_-10px_rgba(209,250,110,0.7),0_2px_0_rgba(255,255,255,0.25)_inset]",
         )}
@@ -39,8 +39,8 @@ export default function BottomNav() {
         </motion.span>
       </Link>
 
-      {/* Nav bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 pb-[env(safe-area-inset-bottom)]">
+      {/* Nav bar — mobile only */}
+      <nav className="fixed inset-x-0 bottom-0 z-30 pb-[env(safe-area-inset-bottom)] md:hidden">
         <div className="mx-auto max-w-2xl px-3 pb-3">
           <div className="relative flex items-center justify-around rounded-2xl border border-line bg-bg/85 px-1 py-1.5 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] backdrop-blur-xl">
             {items.map((it) => {

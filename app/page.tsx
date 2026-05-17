@@ -68,49 +68,55 @@ export default async function TodayPage() {
         <Pomodoro />
       </div>
 
-      <DailyLog />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          {tasks.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-medium text-sub">Tasks</h2>
+              <StaggerList className="space-y-2">
+                {tasks.map((a) => <StaggerItem key={a.id}><ActionRow a={a} /></StaggerItem>)}
+              </StaggerList>
+            </section>
+          )}
 
-      {tasks.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-medium text-sub">Tasks</h2>
-          <StaggerList className="space-y-2">
-            {tasks.map((a) => <StaggerItem key={a.id}><ActionRow a={a} /></StaggerItem>)}
-          </StaggerList>
-        </section>
-      )}
+          {habits.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">
+                <AREA_META.habits.Icon size={14} style={{ color: AREA_META.habits.accent }} />
+                Daily habits
+              </h2>
+              <StaggerList className="space-y-2">
+                {habits.map((a) => <StaggerItem key={a.id}><ActionRow a={a} /></StaggerItem>)}
+              </StaggerList>
+            </section>
+          )}
+        </div>
 
-      {habits.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">
-            <AREA_META.habits.Icon size={14} style={{ color: AREA_META.habits.accent }} />
-            Daily habits
-          </h2>
-          <StaggerList className="space-y-2">
-            {habits.map((a) => <StaggerItem key={a.id}><ActionRow a={a} /></StaggerItem>)}
-          </StaggerList>
-        </section>
-      )}
+        <div className="space-y-6">
+          <DailyLog />
 
-      {overduePeople.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">
-            <Users size={14} style={{ color: AREA_META.relationships.accent }} />
-            Reach out
-            <span className="text-sub tabular-nums">· {overduePeople.length}</span>
-          </h2>
-          <div className="space-y-2">
-            {overduePeople.map((p) => (
-              <Link key={p.id} href="/relationships" className="card flex items-center justify-between p-3 transition hover:border-sub active:scale-[0.99]">
-                <div>
-                  <div className="text-sm">{p.name}</div>
-                  <div className="text-[11px] text-sub">{p.relationship || ""}</div>
-                </div>
-                <div className="text-xs text-sub">every {p.cadenceDays}d</div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+          {overduePeople.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-medium text-sub inline-flex items-center gap-2">
+                <Users size={14} style={{ color: AREA_META.relationships.accent }} />
+                Reach out
+                <span className="text-sub tabular-nums">· {overduePeople.length}</span>
+              </h2>
+              <div className="space-y-2">
+                {overduePeople.map((p) => (
+                  <Link key={p.id} href="/relationships" className="card flex items-center justify-between p-3 transition hover:border-sub active:scale-[0.99]">
+                    <div>
+                      <div className="text-sm">{p.name}</div>
+                      <div className="text-[11px] text-sub">{p.relationship || ""}</div>
+                    </div>
+                    <div className="text-xs text-sub">every {p.cadenceDays}d</div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
 
       {total === 0 && (
         <div className="card p-8 text-center">
