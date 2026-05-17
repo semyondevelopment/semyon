@@ -1,6 +1,6 @@
 import { db, ensureDb } from "@/db/client";
 import { actions, people } from "@/db/schema";
-import { and, eq, lte, asc, or, inArray } from "drizzle-orm";
+import { and, eq, lte, asc, inArray } from "drizzle-orm";
 import { startOfTodayUnix } from "@/lib/scheduling";
 import ActionRow from "@/components/ActionRow";
 import Link from "next/link";
@@ -9,26 +9,36 @@ import QuickAdd from "@/components/QuickAdd";
 import { Users } from "lucide-react";
 import { AREA_META } from "@/lib/areas";
 import DailyLog from "@/components/DailyLog";
+import SetupNeeded from "@/components/SetupNeeded";
 
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage() {
-  await ensureDb();
-  const cutoff = startOfTodayUnix();
+  try {
+    await ensureDb();
+  } catch (e: unknown) {
+    return <SetupNeeded error={e instanceof Error ? e.message : String(e)} />;
+  }
 
-  // Today = personal tasks + habits + overdue people (not training, not content)
-  const due = await db.select().from(actions)
-    .where(and(
-      eq(actions.status, "active"),
-      lte(actions.nextDueAt, cutoff),
-      inArray(actions.area, ["tasks", "habits", "study", "projects"]),
-    ))
-    .orderBy(asc(actions.nextDueAt));
+  let due: typeof actions.$inferSelect[] = [];
+  let allPeople: typeof people.$inferSelect[] = [];
+  try {
+    const cutoff = startOfTodayUnix();
+    due = await db.select().from(actions)
+      .where(and(
+        eq(actions.status, "active"),
+        lte(actions.nextDueAt, cutoff),
+        inArray(actions.area, ["tasks", "habits", "study", "projects"]),
+      ))
+      .orderBy(asc(actions.nextDueAt));
+    allPeople = await db.select().from(people);
+  } catch (e: unknown) {
+    return <SetupNeeded error={e instanceof Error ? e.message : String(e)} />;
+  }
 
   const tasks = due.filter((a) => a.area === "tasks" || a.area === "projects" || a.area === "study");
   const habits = due.filter((a) => a.area === "habits");
 
-  const allPeople = await db.select().from(people);
   const overduePeople = allPeople.filter((p) => {
     if (!p.lastContactAt) return true;
     const days = (Date.now() / 1000 - p.lastContactAt) / 86400;
@@ -98,7 +108,7 @@ export default async function TodayPage() {
 
       {total === 0 && (
         <div className="card p-8 text-center">
-          <div className="text-lg font-medium">Clean slate. ✨</div>
+          <div className="text-lg font-medium">Clean slate.</div>
           <div className="mt-1 text-sm text-sub">Add a task above, or rest.</div>
         </div>
       )}
