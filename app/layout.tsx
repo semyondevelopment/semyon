@@ -4,6 +4,7 @@ import BottomNav from "@/components/BottomNav";
 import Sidebar from "@/components/Sidebar";
 import SwRegister from "@/components/SwRegister";
 import Preloader from "@/components/Preloader";
+import CommandPalette from "@/components/CommandPalette";
 
 export const metadata: Metadata = {
   title: "Life OS",
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </main>
         <BottomNav />
+        <CommandPalette />
         <SwRegister />
       </body>
     </html>

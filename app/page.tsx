@@ -11,8 +11,10 @@ import { AREA_META } from "@/lib/areas";
 import DailyLog from "@/components/DailyLog";
 import SetupNeeded from "@/components/SetupNeeded";
 import Pomodoro from "@/components/Pomodoro";
+import MorningBrief from "@/components/MorningBrief";
+import WhyCallout from "@/components/WhyCallout";
 import { Suspense } from "react";
-import { ChartSkeleton } from "@/components/Skeletons";
+import { ChartSkeleton, CardSkeleton } from "@/components/Skeletons";
 
 export const dynamic = "force-dynamic";
 
@@ -67,10 +69,18 @@ export default async function TodayPage() {
         </div>
       </header>
 
+      <Suspense fallback={<CardSkeleton h="h-40" />}>
+        <MorningBrief />
+      </Suspense>
+
       <div className="flex items-stretch gap-2">
         <div className="flex-1"><QuickAdd area="tasks" placeholder="Add a task for today…" /></div>
         <Pomodoro />
       </div>
+
+      <Suspense fallback={null}>
+        <WhyCallout />
+      </Suspense>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

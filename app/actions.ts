@@ -504,6 +504,60 @@ export async function syncCanvasNow() {
   return r;
 }
 
+// ─── Command palette search ────────────────────────────────────────
+export async function searchAll(): Promise<{
+  goals: { id: number; title: string; area: string }[];
+  leads: { id: number; name: string; niche: string | null; status: string }[];
+  notes: { id: number; area: string; body: string }[];
+  modules: { id: number; name: string; code: string | null }[];
+  books: { id: number; title: string; author: string | null }[];
+  actions: { id: number; title: string; area: string }[];
+}> {
+  await ensureDb();
+  const [g, l, n, m, b, a] = await db.batch([
+    db.select({ id: goals.id, title: goals.title, area: goals.area }).from(goals).where(eq(goals.status, "active")),
+    db.select({ id: leads.id, name: leads.name, niche: leads.niche, status: leads.status }).from(leads),
+    db.select({ id: notes.id, area: notes.area, body: notes.body }).from(notes),
+    db.select({ id: modules.id, name: modules.name, code: modules.code }).from(modules).where(eq(modules.status, "active")),
+    db.select({ id: books.id, title: books.title, author: books.author }).from(books),
+    db.select({ id: actions.id, title: actions.title, area: actions.area }).from(actions).where(eq(actions.status, "active")).limit(100),
+  ]);
+  return { goals: g, leads: l, notes: n, modules: m, books: b, actions: a };
+}
+
+// ─── Snooze + undo ─────────────────────────────────────────────────
+export async function snoozeAction(actionId: number, days: number) {
+  await ensureDb();
+  const [a] = await db.select().from(actions).where(eq(actions.id, actionId));
+  if (!a) return;
+  const next = Math.floor(Date.now() / 1000) + days * 86400;
+  await db.update(actions).set({ nextDueAt: next }).where(eq(actions.id, actionId));
+  revalidatePath("/", "layout");
+}
+
+export async function undoLastCheckOff(actionId: number) {
+  await ensureDb();
+  // Find the most recent action_log row for this action and remove it; also reset streak by one.
+  const [a] = await db.select().from(actions).where(eq(actions.id, actionId));
+  if (!a) return;
+  const [last] = await db.select().from(actionLog)
+    .where(eq(actionLog.actionId, actionId))
+    .orderBy(sql`done_at DESC`)
+    .limit(1);
+  if (!last) return;
+  await db.delete(actionLog).where(eq(actionLog.id, last.id));
+  // Roll back the action's next_due_at and streak (best-effort).
+  const prevStreak = Math.max(0, (a.streak ?? 0) - 1);
+  await db.update(actions).set({
+    streak: prevStreak,
+    lastDoneAt: last.outcome === "done" ? null : a.lastDoneAt,
+    // Pull next_due_at back to now so it shows up again today.
+    nextDueAt: Math.floor(Date.now() / 1000),
+    status: a.status === "done" ? "active" : a.status,
+  }).where(eq(actions.id, actionId));
+  revalidatePath("/", "layout");
+}
+
 // ─── Weekly reflection ──────────────────────────────────────────────
 export async function saveReflection(formData: FormData) {
   await ensureDb();
