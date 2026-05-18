@@ -11,7 +11,7 @@ import HourlyRate from "@/components/HourlyRate";
 import { AREA_META } from "@/lib/areas";
 import { todayKey } from "@/lib/dates";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function MoneyPage() {
   try { await ensureDb(); }

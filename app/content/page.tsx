@@ -10,7 +10,7 @@ import QuickAdd from "@/components/QuickAdd";
 import { leads as leadsT } from "@/db/schema";
 import { sql } from "drizzle-orm";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function ContentPage() {
   await ensureDb();

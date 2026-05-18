@@ -2,7 +2,7 @@ import { AREA_META, AREA_ORDER } from "@/lib/areas";
 import { createGoal, createAction, createNote, createPerson } from "@/app/actions";
 import CaptureTabs from "@/components/CaptureTabs";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function CapturePage({ searchParams }: { searchParams: Promise<{ area?: string; type?: string }> }) {
   const sp = await searchParams;

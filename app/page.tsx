@@ -16,7 +16,7 @@ import WhyCallout from "@/components/WhyCallout";
 import { Suspense } from "react";
 import { ChartSkeleton, CardSkeleton } from "@/components/Skeletons";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function TodayPage() {
   try {

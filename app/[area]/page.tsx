@@ -10,7 +10,7 @@ import type { Area } from "@/db/schema";
 import { StaggerList, StaggerItem } from "@/components/Stagger";
 import { Plus, CheckCheck, ArrowLeft } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function AreaPage({ params }: { params: Promise<{ area: string }> }) {
   await ensureDb();

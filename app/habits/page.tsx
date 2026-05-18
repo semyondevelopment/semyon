@@ -9,7 +9,7 @@ import { StaggerList, StaggerItem } from "@/components/Stagger";
 import SetupNeeded from "@/components/SetupNeeded";
 import { AREA_META } from "@/lib/areas";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 function localDateKey(unix: number): string {
   const d = new Date(unix * 1000);

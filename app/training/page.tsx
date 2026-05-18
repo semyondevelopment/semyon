@@ -15,7 +15,7 @@ import { Suspense } from "react";
 import { Dumbbell, Calendar, Flame } from "lucide-react";
 import type { SetLog } from "@/db/schema";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function TrainingPage() {
   await ensureDb();

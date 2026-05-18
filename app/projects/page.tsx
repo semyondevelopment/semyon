@@ -6,7 +6,7 @@ import Link from "next/link";
 import SetupNeeded from "@/components/SetupNeeded";
 import { AREA_META } from "@/lib/areas";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const STATUSES = ["planning", "building", "shipped", "paused", "archived"] as const;
 const STATUS_COLOR: Record<string, string> = {

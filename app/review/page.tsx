@@ -10,7 +10,7 @@ import ReflectionForm from "@/components/ReflectionForm";
 import { weekStartUnix, fmtWeek } from "@/lib/dates";
 import NotificationsButton from "@/components/NotificationsButton";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function ReviewPage() {
   await ensureDb();

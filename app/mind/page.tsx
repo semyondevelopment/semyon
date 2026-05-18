@@ -7,7 +7,7 @@ import Sparkline from "@/components/charts/Sparkline";
 import { Brain, BookOpen } from "lucide-react";
 import SetupNeeded from "@/components/SetupNeeded";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function MindPage() {
   try { await ensureDb(); }

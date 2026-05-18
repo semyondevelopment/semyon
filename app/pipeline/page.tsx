@@ -7,7 +7,7 @@ import LeadCreate from "@/components/LeadCreate";
 import { ArrowLeft, Target } from "lucide-react";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 const STATUS_META: Record<LeadStatus, { label: string; tint: string; accent: string }> = {
   lead:        { label: "Lead",        tint: "from-slate-500/15",    accent: "#94a3b8" },

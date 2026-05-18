@@ -10,7 +10,7 @@ import { createAction, createMilestone, toggleMilestone, pinGoal, deleteGoal, up
 import { fmtDate } from "@/lib/scheduling";
 import { ArrowLeft, Pin, Trash2, Plus, Check, Target, Calendar } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function GoalPage({ params }: { params: Promise<{ id: string }> }) {
   await ensureDb();

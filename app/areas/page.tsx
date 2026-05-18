@@ -6,7 +6,7 @@ import { eq, sql } from "drizzle-orm";
 import { StaggerList, StaggerItem } from "@/components/Stagger";
 import { ArrowUpRight } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function AreasIndex() {
   await ensureDb();

@@ -12,7 +12,7 @@ import {
 import { fmtDate } from "@/lib/scheduling";
 import CanvasSyncButton from "@/components/CanvasSyncButton";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export default async function StudyPage() {
   try { await ensureDb(); }

@@ -7,7 +7,7 @@ import SetupNeeded from "@/components/SetupNeeded";
 import PersonCard from "@/components/PersonCard";
 import { AREA_META } from "@/lib/areas";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 function daysUntilBirthday(mmdd: string | null): number | null {
   if (!mmdd) return null;
