@@ -25,8 +25,25 @@ export default async function TrainingPage() {
     .where(and(eq(actions.status, "active"), eq(actions.area, "health"), lte(actions.nextDueAt, cutoff)))
     .orderBy(asc(actions.nextDueAt));
 
-  const mainAction = todayHealth.find((a) => sessionForAction(a.title));
-  const mainSession: Session | null = mainAction ? sessionForAction(mainAction.title) : null;
+  // Pick today's *scheduled* session — not whatever's oldest in the backlog.
+  const todayDow = new Date().getDay();
+  const PRIORITY: Record<string, number> = { lift: 0, muay: 1, bjj: 2, run: 3 };
+  const candidates = todayHealth
+    .map((a) => ({ a, s: sessionForAction(a.title) }))
+    .filter((x) => x.s);
+  candidates.sort((x, y) => {
+    const xDow = new Date(x.a.nextDueAt * 1000).getDay();
+    const yDow = new Date(y.a.nextDueAt * 1000).getDay();
+    const xMatch = xDow === todayDow ? 0 : 1;
+    const yMatch = yDow === todayDow ? 0 : 1;
+    if (xMatch !== yMatch) return xMatch - yMatch;             // today's day-of-week wins
+    const xP = PRIORITY[x.s!.type] ?? 9;
+    const yP = PRIORITY[y.s!.type] ?? 9;
+    if (xP !== yP) return xP - yP;                              // then lift > muay > bjj > run
+    return x.a.nextDueAt - y.a.nextDueAt;                       // then oldest first
+  });
+  const mainAction = candidates[0]?.a;
+  const mainSession: Session | null = candidates[0]?.s ?? null;
   const supports = todayHealth.filter((a) => a !== mainAction);
 
   // Load this session's logs + most recent prior session per exercise.
@@ -66,7 +83,6 @@ export default async function TrainingPage() {
     });
   }
 
-  const todayDow = new Date().getDay();
   const todayLabel = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][todayDow];
   const date = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
 
