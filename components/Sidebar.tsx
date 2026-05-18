@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { motion } from "framer-motion";
 import {
   CheckSquare, Dumbbell, Video, LayoutGrid, Plus,
-  Brain, BarChart3, Briefcase,
+  Brain, BarChart3, Briefcase, QrCode,
   type LucideIcon,
 } from "lucide-react";
 import { AREA_META, AREA_ORDER } from "@/lib/areas";
@@ -81,6 +81,12 @@ export default function Sidebar() {
           className="mt-1 inline-flex items-center gap-3 rounded-lg px-3 py-1.5 text-[12px] text-sub transition hover:text-ink"
         >
           <LayoutGrid size={12} />All areas
+        </Link>
+        <Link
+          href="/card"
+          className="mt-1 inline-flex items-center gap-3 rounded-lg px-3 py-1.5 text-[12px] text-sub transition hover:text-ink"
+        >
+          <QrCode size={12} />Share card
         </Link>
       </nav>
 
