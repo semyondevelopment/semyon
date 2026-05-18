@@ -16,7 +16,7 @@ export default async function ReviewPage() {
   await ensureDb();
   const weekAgo = Math.floor(Date.now() / 1000) - 7 * 86400;
   const weekStart = weekStartUnix();
-  const [log, allActions, existingReflectionRow, pinned] = await Promise.all([
+  const [log, allActions, existingReflectionRow, pinned] = await db.batch([
     db.select().from(actionLog).where(gte(actionLog.doneAt, weekAgo)),
     db.select().from(actions),
     db.select().from(reflections).where(eq(reflections.weekStarting, weekStart)),

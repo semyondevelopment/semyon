@@ -3,12 +3,22 @@ import { dailyLog } from "@/db/schema";
 import { desc, isNotNull } from "drizzle-orm";
 import Sparkline from "@/components/charts/Sparkline";
 import { TrendingUp } from "lucide-react";
+import { unstable_cache } from "next/cache";
+
+const getWeightRows = unstable_cache(
+  async () => {
+    return db.select({ dateKey: dailyLog.dateKey, weightKg: dailyLog.weightKg })
+      .from(dailyLog)
+      .where(isNotNull(dailyLog.weightKg))
+      .orderBy(desc(dailyLog.dateKey))
+      .limit(60);
+  },
+  ["weight-trend-v1"],
+  { revalidate: 300, tags: ["daily_log"] },
+);
 
 export default async function WeightTrend() {
-  const rows = await db.select().from(dailyLog)
-    .where(isNotNull(dailyLog.weightKg))
-    .orderBy(desc(dailyLog.dateKey))
-    .limit(60);
+  const rows = await getWeightRows();
   const data = rows
     .map((r) => ({ key: r.dateKey, y: parseFloat(r.weightKg ?? "") }))
     .filter((r) => !isNaN(r.y))

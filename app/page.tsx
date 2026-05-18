@@ -11,6 +11,8 @@ import { AREA_META } from "@/lib/areas";
 import DailyLog from "@/components/DailyLog";
 import SetupNeeded from "@/components/SetupNeeded";
 import Pomodoro from "@/components/Pomodoro";
+import { Suspense } from "react";
+import { ChartSkeleton } from "@/components/Skeletons";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +27,8 @@ export default async function TodayPage() {
   let allPeople: typeof people.$inferSelect[] = [];
   try {
     const cutoff = startOfTodayUnix();
-    [due, allPeople] = await Promise.all([
+    // Single roundtrip via libSQL batch instead of two parallel HTTP calls.
+    const [d, p] = await db.batch([
       db.select().from(actions)
         .where(and(
           eq(actions.status, "active"),
@@ -35,6 +38,7 @@ export default async function TodayPage() {
         .orderBy(asc(actions.nextDueAt)),
       db.select().from(people),
     ]);
+    due = d; allPeople = p;
   } catch (e: unknown) {
     return <SetupNeeded error={e instanceof Error ? e.message : String(e)} />;
   }
@@ -93,7 +97,9 @@ export default async function TodayPage() {
         </div>
 
         <div className="space-y-6">
-          <DailyLog />
+          <Suspense fallback={<ChartSkeleton />}>
+            <DailyLog />
+          </Suspense>
 
           {overduePeople.length > 0 && (
             <section className="space-y-2">

@@ -16,7 +16,7 @@ export default async function ContentPage() {
   await ensureDb();
   const cutoff = startOfTodayUnix();
 
-  const [dueMoney, moneyNotes, moneyGoals, mrrAgg, leadAgg] = await Promise.all([
+  const [dueMoney, moneyNotes, moneyGoals, mrrAgg, leadAgg] = await db.batch([
     db.select().from(actions)
       .where(and(eq(actions.status, "active"), eq(actions.area, "money"), lte(actions.nextDueAt, cutoff)))
       .orderBy(asc(actions.nextDueAt)),

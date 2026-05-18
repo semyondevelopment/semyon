@@ -25,7 +25,7 @@ export default async function MoneyPage() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   })();
 
-  const [moneyGoals, moneyActions, moneyNotes, allExpenses, signedLeads, mrrAgg] = await Promise.all([
+  const [moneyGoals, moneyActions, moneyNotes, allExpenses, signedLeads, mrrAgg] = await db.batch([
     db.select().from(goals).where(eq(goals.area, "money")).orderBy(asc(goals.id)),
     db.select().from(actions).where(and(eq(actions.area, "money"), eq(actions.status, "active"))).orderBy(asc(actions.nextDueAt)),
     db.select().from(notes).where(eq(notes.area, "money")).orderBy(asc(notes.id)),

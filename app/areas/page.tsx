@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 
 export default async function AreasIndex() {
   await ensureDb();
-  // Two queries total instead of 14 — group counts in one trip per table.
-  const [goalRows, actionRows] = await Promise.all([
+  // Single roundtrip via batch.
+  const [goalRows, actionRows] = await db.batch([
     db.select({ area: goals.area, c: sql<number>`count(*)` }).from(goals).groupBy(goals.area),
     db.select({ area: actions.area, c: sql<number>`count(*)` }).from(actions).groupBy(actions.area),
   ]);

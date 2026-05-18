@@ -23,7 +23,7 @@ export default async function HabitsPage() {
   const meta = AREA_META.habits;
   const ninetyDaysAgo = Math.floor(Date.now() / 1000) - 90 * 86400;
 
-  const [habits, logs] = await Promise.all([
+  const [habits, logs] = await db.batch([
     db.select().from(actions).where(and(eq(actions.area, "habits"), eq(actions.status, "active"))).orderBy(asc(actions.id)),
     db.select().from(actionLog).where(gte(actionLog.doneAt, ninetyDaysAgo)).orderBy(desc(actionLog.doneAt)),
   ]);

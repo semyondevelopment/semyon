@@ -19,14 +19,14 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
   const area = areaParam as Area;
   const meta = AREA_META[area];
 
-  const [areaGoals, standaloneActions, areaNotes, areaPeople] = await Promise.all([
+  const [areaGoals, standaloneActions, areaNotes] = await db.batch([
     db.select().from(goals).where(eq(goals.area, area)).orderBy(asc(goals.id)),
     db.select().from(actions)
       .where(and(eq(actions.area, area), sql`goal_id IS NULL`, eq(actions.status, "active")))
       .orderBy(asc(actions.nextDueAt)),
     db.select().from(notes).where(eq(notes.area, area)).orderBy(asc(notes.id)),
-    area === "relationships" ? db.select().from(people).orderBy(asc(people.id)) : Promise.resolve([] as any[]),
   ]);
+  const areaPeople = area === "relationships" ? await db.select().from(people).orderBy(asc(people.id)) : [];
 
   let progress = new Map<number, { done: number; total: number }>();
   if (areaGoals.length) {

@@ -2,8 +2,8 @@ import { db } from "@/db/client";
 import { setLog } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { Trophy } from "lucide-react";
+import { unstable_cache } from "next/cache";
 
-// Lifts whose 1-rep best we track as PRs.
 const PR_LIFTS = [
   "Barbell Bench Press",
   "Back Squat",
@@ -16,24 +16,32 @@ const PR_LIFTS = [
   "Romanian Deadlift",
 ];
 
-// Estimated 1-rep max (Epley): 1RM ≈ w × (1 + reps/30)
 function e1rm(weight: number, reps: number): number {
   return weight * (1 + reps / 30);
 }
 
-export default async function PRBoard() {
-  const rows = await db.select().from(setLog).orderBy(desc(setLog.doneAt)).limit(500);
-  const best: Record<string, { weight: number; reps: number; date: string; e1rm: number }> = {};
-  for (const r of rows) {
-    const w = parseFloat(r.weight ?? "");
-    const reps = r.reps ?? 0;
-    if (!w || !reps) continue;
-    const est = e1rm(w, reps);
-    const cur = best[r.exercise];
-    if (!cur || est > cur.e1rm) {
-      best[r.exercise] = { weight: w, reps, date: r.sessionDate, e1rm: est };
+const getPRs = unstable_cache(
+  async () => {
+    const rows = await db.select().from(setLog).orderBy(desc(setLog.doneAt)).limit(500);
+    const best: Record<string, { weight: number; reps: number; date: string; e1rm: number }> = {};
+    for (const r of rows) {
+      const w = parseFloat(r.weight ?? "");
+      const reps = r.reps ?? 0;
+      if (!w || !reps) continue;
+      const est = e1rm(w, reps);
+      const cur = best[r.exercise];
+      if (!cur || est > cur.e1rm) {
+        best[r.exercise] = { weight: w, reps, date: r.sessionDate, e1rm: est };
+      }
     }
-  }
+    return best;
+  },
+  ["pr-board-v1"],
+  { revalidate: 300, tags: ["set_log"] },
+);
+
+export default async function PRBoard() {
+  const best = await getPRs();
   const items = PR_LIFTS.map((name) => ({ name, pr: best[name] })).filter((x) => x.pr);
 
   return (

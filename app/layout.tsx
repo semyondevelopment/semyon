@@ -20,8 +20,18 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Open TLS connection to Turso early so the first DB query doesn't pay the handshake cost.
+  const tursoHost = (() => {
+    try { return process.env.TURSO_DATABASE_URL ? new URL(process.env.TURSO_DATABASE_URL.replace(/^libsql:\/\//, "https://")).origin : null; }
+    catch { return null; }
+  })();
+
   return (
     <html lang="en">
+      <head>
+        {tursoHost && <link rel="preconnect" href={tursoHost} crossOrigin="" />}
+        {tursoHost && <link rel="dns-prefetch" href={tursoHost} />}
+      </head>
       <body className="min-h-dvh">
         <Preloader />
         <Sidebar />

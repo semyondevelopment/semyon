@@ -10,6 +10,8 @@ import SessionDetail from "@/components/SessionDetail";
 import DailyLog from "@/components/DailyLog";
 import WeightTrend from "@/components/WeightTrend";
 import PRBoard from "@/components/PRBoard";
+import { ChartSkeleton, GridSkeleton } from "@/components/Skeletons";
+import { Suspense } from "react";
 import { Dumbbell, Calendar, Flame } from "lucide-react";
 import type { SetLog } from "@/db/schema";
 
@@ -32,33 +34,36 @@ export default async function TrainingPage() {
   let lastByExercise: Record<string, { date: string; sets: SetLog[] } | null> = {};
   if (mainAction && mainSession) {
     const tkey = todayKey();
-    const today = await db.select().from(setLog)
+    // Single batch: 1 query for today's sets + N queries for each exercise's prior history.
+    const todayQuery = db.select().from(setLog)
       .where(and(eq(setLog.actionId, mainAction.id), eq(setLog.sessionDate, tkey)))
       .orderBy(asc(setLog.setIndex));
+    const priorQueries = mainSession.blocks.map((block) =>
+      db.select().from(setLog)
+        .where(and(
+          eq(setLog.actionId, mainAction.id),
+          eq(setLog.exercise, block.name),
+          ne(setLog.sessionDate, tkey),
+        ))
+        .orderBy(desc(setLog.sessionDate), asc(setLog.setIndex))
+    );
+    const results = await db.batch([todayQuery, ...priorQueries]);
+    const today = results[0];
+    const priorResults = results.slice(1);
+
     todayByExercise = today.reduce<Record<string, SetLog[]>>((acc, s) => {
       (acc[s.exercise] ||= []).push(s);
       return acc;
     }, {});
-    const priors = await Promise.all(
-      mainSession.blocks.map((block) =>
-        db.select().from(setLog)
-          .where(and(
-            eq(setLog.actionId, mainAction.id),
-            eq(setLog.exercise, block.name),
-            ne(setLog.sessionDate, tkey),
-          ))
-          .orderBy(desc(setLog.sessionDate), asc(setLog.setIndex))
-          .then((rows) => ({ block, rows })),
-      ),
-    );
-    for (const { block, rows } of priors) {
+    mainSession.blocks.forEach((block, i) => {
+      const rows = priorResults[i];
       if (rows.length) {
         const date = rows[0].sessionDate;
         lastByExercise[block.name] = { date, sets: rows.filter((p) => p.sessionDate === date) };
       } else {
         lastByExercise[block.name] = null;
       }
-    }
+    });
   }
 
   const todayDow = new Date().getDay();
@@ -100,12 +105,18 @@ export default async function TrainingPage() {
             </section>
           )}
 
-          <PRBoard />
+          <Suspense fallback={<GridSkeleton cols={3} />}>
+            <PRBoard />
+          </Suspense>
         </div>
 
         <div className="space-y-6">
-          <DailyLog />
-          <WeightTrend />
+          <Suspense fallback={<ChartSkeleton />}>
+            <DailyLog />
+          </Suspense>
+          <Suspense fallback={<ChartSkeleton />}>
+            <WeightTrend />
+          </Suspense>
         </div>
       </div>
 

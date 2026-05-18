@@ -5,7 +5,7 @@ import {
   mindLog, expenses, modules, assignments, books, studyTopics, studySessions, photos,
 } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { computeNextDue } from "@/lib/scheduling";
 import { redirect } from "next/navigation";
 import type { Area, Cadence, LeadStatus } from "@/db/schema";
@@ -161,6 +161,7 @@ export async function logSet(formData: FormData) {
     await db.insert(setLog).values({ actionId, exercise, setIndex, weight, reps, rpe, sessionDate });
   }
   revalidatePath("/training");
+  revalidateTag("set_log"); // invalidate PR cache
 }
 
 // ─── Daily fuel log ─────────────────────────────────────────────────
@@ -200,6 +201,7 @@ export async function logWeight(formData: FormData) {
     await db.update(dailyLog).set({ weightKg: kg, updatedAt: now }).where(eq(dailyLog.dateKey, key));
   }
   revalidatePath("/", "layout");
+  revalidateTag("daily_log");
 }
 
 export async function resetToday() {

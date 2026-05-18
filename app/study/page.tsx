@@ -18,7 +18,7 @@ export default async function StudyPage() {
   try { await ensureDb(); }
   catch (e) { return <SetupNeeded error={e instanceof Error ? e.message : String(e)} />; }
 
-  const [allModules, allAssignments, allBooks, allTopics, areaNotes, allAnnouncements, canvasSync] = await Promise.all([
+  const [allModules, allAssignments, allBooks, allTopics, areaNotes, allAnnouncements, canvasSync] = await db.batch([
     db.select().from(modules).orderBy(asc(modules.id)),
     db.select().from(assignments).orderBy(asc(assignments.dueDate)),
     db.select().from(books).orderBy(desc(books.pinned), asc(books.id)),
