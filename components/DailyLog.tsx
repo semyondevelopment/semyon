@@ -7,16 +7,12 @@ import DailyLogClient from "@/components/DailyLogClient";
 export default async function DailyLog() {
   await ensureDb();
   const tkey = todayKey();
-  const today = (await db.select().from(dailyLog).where(eq(dailyLog.dateKey, tkey)))[0] ?? null;
-  // most recent weight (could be from today or earlier)
-  const latestWeightRow = (await db.select().from(dailyLog)
-    .where(eq(dailyLog.dateKey, tkey)).limit(1))[0];
-  let latestWeightKg = latestWeightRow?.weightKg;
-  if (!latestWeightKg) {
-    const recent = (await db.select().from(dailyLog)
-      .orderBy(desc(dailyLog.updatedAt)).limit(10))
-      .find((r) => r.weightKg);
-    latestWeightKg = recent?.weightKg ?? null;
-  }
-  return <DailyLogClient today={today} latestWeightKg={latestWeightKg ?? null} />;
+  const [todayRows, recentRows] = await db.batch([
+    db.select().from(dailyLog).where(eq(dailyLog.dateKey, tkey)),
+    db.select().from(dailyLog).orderBy(desc(dailyLog.updatedAt)).limit(10),
+  ]);
+  const today = todayRows[0] ?? null;
+  const latestWeightKg =
+    today?.weightKg ?? recentRows.find((r) => r.weightKg)?.weightKg ?? null;
+  return <DailyLogClient today={today} latestWeightKg={latestWeightKg} />;
 }

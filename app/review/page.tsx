@@ -26,6 +26,7 @@ export default async function ReviewPage() {
   const done = log.filter((l) => l.outcome === "done").length;
   const skipped = log.filter((l) => l.outcome === "skip").length;
 
+  const actionsById = new Map(allActions.map((a) => [a.id, a]));
   const byArea: Record<string, { done: number; total: number }> = {};
   for (const a of allActions) {
     byArea[a.area] ||= { done: 0, total: 0 };
@@ -33,7 +34,7 @@ export default async function ReviewPage() {
   }
   for (const l of log) {
     if (l.outcome !== "done") continue;
-    const a = allActions.find((x) => x.id === l.actionId);
+    const a = actionsById.get(l.actionId);
     if (a) byArea[a.area].done += 1;
   }
   const recentDone = log.filter((l) => l.outcome === "done").sort((a, b) => b.doneAt - a.doneAt).slice(0, 12);
@@ -121,7 +122,7 @@ export default async function ReviewPage() {
           <h2 className="text-sm font-medium text-sub">Recent wins</h2>
           <div className="space-y-1 text-sm">
             {recentDone.map((l) => {
-              const a = allActions.find((x) => x.id === l.actionId);
+              const a = actionsById.get(l.actionId);
               return <div key={l.id} className="text-sub"><span className="text-accent">✓</span> {a?.title || "—"}</div>;
             })}
           </div>
