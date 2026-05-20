@@ -61,17 +61,18 @@ export default function Pomodoro() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="card flex items-center gap-2 px-3 py-2 text-xs text-sub transition hover:text-ink"
-        aria-label="Pomodoro timer"
+        className="card flex h-9 w-9 items-center justify-center text-sub transition hover:text-ink"
+        aria-label="Focus timer"
+        title="Focus timer"
       >
-        <Timer size={14} />Focus timer
+        <Timer size={16} />
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur sm:items-center"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur"
             onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
           >
             <motion.div

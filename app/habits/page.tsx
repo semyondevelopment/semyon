@@ -30,19 +30,18 @@ export default async function HabitsPage() {
 
   const habitIds = new Set(habits.map((h) => h.id));
   const logsByHabit = new Map<number, Record<string, number>>();
+  const allMap: Record<string, number> = {};
   for (const l of logs) {
     if (!habitIds.has(l.actionId)) continue;
     if (l.outcome !== "done") continue;
     const k = localDateKey(l.doneAt);
-    if (!logsByHabit.has(l.actionId)) logsByHabit.set(l.actionId, {});
-    const map = logsByHabit.get(l.actionId)!;
+    let map = logsByHabit.get(l.actionId);
+    if (!map) {
+      map = {};
+      logsByHabit.set(l.actionId, map);
+    }
     map[k] = (map[k] ?? 0) + 1;
-  }
-
-  // Aggregate all-habits heatmap
-  const allMap: Record<string, number> = {};
-  for (const m of logsByHabit.values()) {
-    for (const [k, v] of Object.entries(m)) allMap[k] = (allMap[k] ?? 0) + v;
+    allMap[k] = (allMap[k] ?? 0) + 1;
   }
 
   return (

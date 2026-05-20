@@ -7,6 +7,7 @@ const nextConfig = {
     staleTimes: { dynamic: 120, static: 600 },
     // Buttery crossfade between routes (CSS view-transition API).
     viewTransition: true,
+    optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 };
 export default nextConfig;

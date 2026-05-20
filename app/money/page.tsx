@@ -1,6 +1,7 @@
 import { db, ensureDb } from "@/db/client";
 import { goals, actions, notes, expenses, leads } from "@/db/schema";
-import { eq, and, sql, asc, desc, gte } from "drizzle-orm";
+import { eq, and, asc, desc, gte } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { ArrowLeft, Plus, Wallet, TrendingUp, Receipt, Calculator } from "lucide-react";
 import Link from "next/link";
 import SetupNeeded from "@/components/SetupNeeded";
@@ -12,6 +13,27 @@ import { AREA_META } from "@/lib/areas";
 import { todayKey } from "@/lib/dates";
 
 export const revalidate = 30;
+
+type SignedLead = { mrr: number | null; lastTouchAt: number | null; createdAt: number };
+
+const getRevenueSeries = unstable_cache(
+  async (signedLeads: SignedLead[]) => {
+    const byMonth: Record<string, number> = {};
+    for (const l of signedLeads) {
+      const d = new Date((l.lastTouchAt ?? l.createdAt) * 1000);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      byMonth[k] = (byMonth[k] ?? 0) + (l.mrr ?? 0);
+    }
+    const monthKeys = Object.keys(byMonth).sort();
+    let running = 0;
+    return monthKeys.map((k, i) => {
+      running += byMonth[k];
+      return { x: i, y: running, label: `$${running}` };
+    });
+  },
+  ["money-revenue-series-v1"],
+  { tags: ["leads"], revalidate: 600 },
+);
 
 export default async function MoneyPage() {
   try { await ensureDb(); }
@@ -25,32 +47,19 @@ export default async function MoneyPage() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   })();
 
-  const [moneyGoals, moneyActions, moneyNotes, allExpenses, signedLeads, mrrAgg] = await db.batch([
+  const [moneyGoals, moneyActions, moneyNotes, allExpenses, signedLeads] = await db.batch([
     db.select().from(goals).where(eq(goals.area, "money")).orderBy(asc(goals.id)),
     db.select().from(actions).where(and(eq(actions.area, "money"), eq(actions.status, "active"))).orderBy(asc(actions.nextDueAt)),
     db.select().from(notes).where(eq(notes.area, "money")).orderBy(asc(notes.id)),
     db.select().from(expenses).where(gte(expenses.dateKey, sinceKey)).orderBy(desc(expenses.dateKey)),
     db.select().from(leads).where(eq(leads.status, "signed")),
-    db.select({ mrrSum: sql<number>`COALESCE(SUM(${leads.mrr}), 0)` }).from(leads).where(eq(leads.status, "signed")),
   ]);
 
-  const mrr = mrrAgg[0]?.mrrSum ?? 0;
+  const mrr = signedLeads.reduce((s, l) => s + (l.mrr ?? 0), 0);
   const target = 10000;
   const pct = Math.min(100, Math.round((mrr / target) * 100));
 
-  // Revenue over time (cumulative MRR from signed leads, by month). Simple version: bucket signed leads by month signed.
-  const byMonth: Record<string, number> = {};
-  for (const l of signedLeads) {
-    const d = new Date((l.lastTouchAt ?? l.createdAt) * 1000);
-    const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    byMonth[k] = (byMonth[k] ?? 0) + (l.mrr ?? 0);
-  }
-  const monthKeys = Object.keys(byMonth).sort();
-  let running = 0;
-  const revenueSeries = monthKeys.map((k, i) => {
-    running += byMonth[k];
-    return { x: i, y: running, label: `$${running}` };
-  });
+  const revenueSeries = await getRevenueSeries(signedLeads);
 
   return (
     <div className="space-y-6">
