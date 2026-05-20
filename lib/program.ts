@@ -51,6 +51,7 @@ export const SESSIONS: Session[] = [
       { name: "Walking Lunge",              sets: "3 × 10/leg",       rest: "90 s" },
       { name: "Standing Calf Raise",        sets: "4 × 8–12",         rest: "75 s",    notes: "Pause at bottom and top." },
       { name: "Hanging Leg Raise",          sets: "3 × 10–15",        rest: "60 s" },
+      { name: "Kegels",                     sets: "3 × 10 (5 s hold)", rest: "30 s",   notes: "Pelvic floor activation. Squeeze like stopping mid-stream, fully relax between reps." },
     ],
     cues: ["No grappling/sparring the day before", "Hydrate + carbs before"],
   },
