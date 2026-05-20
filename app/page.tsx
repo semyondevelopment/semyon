@@ -1,7 +1,8 @@
 import { db, ensureDb } from "@/db/client";
-import { actions, people } from "@/db/schema";
-import { and, eq, lte, asc, inArray } from "drizzle-orm";
+import { actions, actionLog, goals, people } from "@/db/schema";
+import { and, eq, lte, asc, inArray, gte, sql } from "drizzle-orm";
 import { startOfTodayUnix } from "@/lib/scheduling";
+import HeroCard from "@/components/HeroCard";
 import ActionRow from "@/components/ActionRow";
 import Link from "next/link";
 import { StaggerList, StaggerItem } from "@/components/Stagger";
@@ -48,6 +49,25 @@ export default async function TodayPage() {
   const tasks = due.filter((a) => a.area === "tasks" || a.area === "projects" || a.area === "study");
   const habits = due.filter((a) => a.area === "habits");
 
+  // Hero: pick the single "next step" — prefer something with a linked goal, else first due.
+  const hero = due.find((a) => a.goalId) ?? due[0] ?? null;
+  let heroGoal: typeof goals.$inferSelect | null = null;
+  let doneToday = 0;
+  if (hero) {
+    try {
+      const startToday = startOfTodayUnix();
+      const [g, c] = await db.batch([
+        hero.goalId
+          ? db.select().from(goals).where(eq(goals.id, hero.goalId)).limit(1)
+          : db.select().from(goals).where(eq(goals.pinned, true)).limit(1),
+        db.select({ n: sql<number>`count(*)` }).from(actionLog)
+          .where(and(gte(actionLog.doneAt, startToday), eq(actionLog.outcome, "done"))),
+      ]);
+      heroGoal = g[0] ?? null;
+      doneToday = Number(c[0]?.n ?? 0);
+    } catch {}
+  }
+
   const overduePeople = allPeople.filter((p) => {
     if (!p.lastContactAt) return true;
     const days = (Date.now() / 1000 - p.lastContactAt) / 86400;
@@ -68,6 +88,16 @@ export default async function TodayPage() {
             : <><span className="font-medium tabular-nums text-ink">{total}</span> things to clear.</>}
         </div>
       </header>
+
+      {hero && (
+        <HeroCard
+          action={hero}
+          goal={heroGoal}
+          doneToday={doneToday}
+          totalToday={tasks.length + habits.length + doneToday}
+          streak={hero.streak}
+        />
+      )}
 
       <Suspense fallback={<CardSkeleton h="h-40" />}>
         <MorningBrief />

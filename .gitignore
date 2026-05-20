@@ -6,3 +6,4 @@ db/data.sqlite
 db/data.sqlite-*
 .DS_Store
 .claude/worktrees
+tsconfig.tsbuildinfo
