@@ -80,7 +80,7 @@ export default async function TodayPage() {
   return (
     <div className="space-y-6">
       <header>
-        <div className="text-[11px] uppercase tracking-[0.18em] text-sub">{date}</div>
+        <div className="text-[11px] uppercase tracking-[0.18em] text-sub">{date} · deploy check</div>
         <h1 className="mt-2 text-[40px] font-semibold leading-none tracking-tight">Today</h1>
         <div className="mt-2 text-sm text-sub">
           {total === 0
